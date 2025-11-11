@@ -22,7 +22,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost(nameof(WhoAmI))]
     public async Task<JwtClaims> WhoAmI([FromHeader]string authorization)
     {
-        return await authService.WhoAmI(authorization);
+        return await authService.VerifyAndDecodeToken(authorization);
     }
     
     

@@ -596,7 +596,7 @@ export interface RegisterRequestDto {
 }
 
 export interface JwtClaims {
-    userId: string;
+    id: string;
 }
 
 export interface Author {

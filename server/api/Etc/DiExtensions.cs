@@ -152,7 +152,7 @@ public static class DiExtensions
                 .WithDatabase("postgres")
                 .WithUsername("postgres")
                 .WithPassword("postgres")
-                .WithPortBinding("5432", false)
+                .WithPortBinding("5432", true)
                 .WithExposedPort("5432").Build();
             postgreSqlContainer.StartAsync().GetAwaiter().GetResult();
             var connectionString = postgreSqlContainer.GetConnectionString();

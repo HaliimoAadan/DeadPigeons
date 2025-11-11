@@ -1,5 +1,4 @@
 Todo:
-- Auth
 - TS project references
 - Sign in page
 - Starter deployment
@@ -10,4 +9,4 @@ Todo:
 
 ## Step 2: 
 
-## Step 3: For relevant code snippets, go to branch (withLibraryExample)
+## For relevant code snippets, go to branch (withLibraryExample)

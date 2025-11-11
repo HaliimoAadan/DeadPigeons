@@ -5,6 +5,7 @@ using api.Etc;
 using api.Services;
 using dataccess;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using Sieve.Models;
 using Sieve.Services;
 using Testcontainers.PostgreSql;
@@ -49,6 +50,9 @@ public class Program
         app.UseExceptionHandler(config => { });
         app.UseOpenApi();
         app.UseSwaggerUi();
+        app.MapScalarApiReference(
+            options => options.OpenApiRoutePattern = "/swagger/v1/swagger.json"
+            );
         app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().SetIsOriginAllowed(x => true));
         app.MapControllers();
         app.GenerateApiClientsFromOpenApi("/../../client/src/core/generated-client.ts").GetAwaiter().GetResult();

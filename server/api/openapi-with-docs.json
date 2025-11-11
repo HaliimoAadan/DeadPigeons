@@ -529,7 +529,7 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "userId": {
+          "id": {
             "type": "string"
           }
         }

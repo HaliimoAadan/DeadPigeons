@@ -8,5 +8,4 @@ public interface IAuthService
 
     Task<JwtResponse> Login(LoginRequestDto dto);
     Task<JwtResponse> Register(RegisterRequestDto dto);
-    Task<JwtClaims> WhoAmI(string authorization);
 }

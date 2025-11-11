@@ -1,6 +1,6 @@
 namespace api;
 
-public class JwtClaims
+public record JwtClaims(string Id)
 {
-    public string UserId { get; set; } = null!;
+    public string Id { get; set; } = Id;
 }

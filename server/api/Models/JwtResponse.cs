@@ -1,6 +1,6 @@
 namespace api;
 
-public class JwtResponse
+public record JwtResponse(string Token)
 {
-    public string Token { get; set; } = null!;
+    public string Token { get; set; } = Token;
 }
