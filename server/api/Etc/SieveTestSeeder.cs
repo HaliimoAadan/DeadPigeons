@@ -69,11 +69,9 @@ public class SieveTestSeeder(MyDbContext ctx) : ISeeder
             var numAuthors = random.Next(1, 5); // 1 to 4 authors
             var selectedAuthors = authors.OrderBy(x => random.Next()).Take(numAuthors);
 
-            foreach (var author in selectedAuthors)
-            {
-                book.Authors.Add(author);
-            }
+            foreach (var author in selectedAuthors) book.Authors.Add(author);
         }
+
         await ctx.SaveChangesAsync();
 
         // Stop tracking

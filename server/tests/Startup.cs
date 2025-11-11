@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Time.Testing;
 using Testcontainers.PostgreSql;
 
-
 namespace tests;
 
 public class Startup
@@ -32,6 +31,5 @@ public class Startup
         services.RemoveAll<TimeProvider>();
         var fakeTime = new FakeTimeProvider();
         services.AddSingleton<TimeProvider>(fakeTime);
-
     }
 }

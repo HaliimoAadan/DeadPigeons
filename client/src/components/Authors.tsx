@@ -1,17 +1,22 @@
-import {useAtom} from "jotai";
-<<<<<<< Updated upstream:client/src/Components/Authors.tsx
-import {useEffect, useState} from "react";
-import {type Author, type Book, type CreateAuthorRequestDto, LibraryClient} from "../generated-client.ts";
+import {type Author, type Book, type CreateAuthorRequestDto} from "../generated-client.ts";
 import {AuthorDetails} from "./AuthorDetails.tsx";
-import useLibraryCrud, {libraryApi} from "../useLibraryCrud.ts";
-import {resolveRefs} from "dotnet-json-refs";
-=======
-import {AllAuthorsAtom, AllBooksAtom} from "../atoms/atoms.ts";
 import {useState} from "react";
 import {type CreateAuthorRequestDto} from "../core/generated-client.ts";
 import {Author} from "./Author.tsx";
 import useLibraryCrud from "../utilities/useLibraryCrud.ts";
->>>>>>> Stashed changes:client/src/components/Authors.tsx
+
+<
+<
+<
+<
+<
+<< Updated upstream:client/src/Components/Authors.tsx
+           import {useEffect, useState} from "react";
+======
+=
+>>>>>>>
+Stashed
+client / src / components / Authors.tsx
 
 export default function Authors() {
 
@@ -21,7 +26,7 @@ export default function Authors() {
         name: "New Author"
     });
     const libraryCrud = useLibraryCrud();
-    
+
     useEffect(() => {
         libraryCrud.getAuthors(setAuthors, {filters: "", sorts: "", page: 1, pageSize: 1000});
     }, [])
@@ -55,8 +60,10 @@ export default function Authors() {
                                 setCreateAuthorForm({name: "New Author"});
                             }}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-4 h-4 stroke-current">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 className="w-4 h-4 stroke-current">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                      d="M12 4v16m8-8H4"></path>
                             </svg>
                             Create Author
                         </button>
@@ -67,7 +74,7 @@ export default function Authors() {
 
         <ul className="list bg-base-100 rounded-box shadow-md mx-5">
             {
-                authors.map(a => <AuthorDetails key={a.id} author={a} setAllAuthors={setAuthors} />)
+                authors.map(a => <AuthorDetails key={a.id} author={a} setAllAuthors={setAuthors}/>)
             }
         </ul>
     </>

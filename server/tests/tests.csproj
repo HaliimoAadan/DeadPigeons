@@ -28,7 +28,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../api/api.csproj"/>
-        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.10.0" />
+        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.10.0"/>
         <PackageReference Include="Xunit.DependencyInjection" Version="10.7.0"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0"/>
         <PackageReference Include="xunit.v3" Version="3.0.1"/>

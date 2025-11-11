@@ -6,9 +6,9 @@ using NSwag.Generation.Processors.Contexts;
 namespace api.Etc;
 
 /// <summary>
-/// Document processor that extracts string constant values from a static class
-/// and adds them to the OpenAPI schema as an object with string properties.
-/// This generates both an interface and a const object in TypeScript.
+///     Document processor that extracts string constant values from a static class
+///     and adds them to the OpenAPI schema as an object with string properties.
+///     This generates both an interface and a const object in TypeScript.
 /// </summary>
 public class StringConstantsDocumentProcessor<T> : IDocumentProcessor where T : class
 {

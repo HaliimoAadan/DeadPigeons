@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace api.DTOs.Requests;
 
 public class LoginRequestDto

@@ -1,4 +1,3 @@
-import {useAtom} from "jotai";
 import {type Book, type UpdateAuthorRequestDto} from "../generated-client.ts";
 import {useState} from "react";
 import useLibraryCrud from "../utilities/useLibraryCrud.ts";

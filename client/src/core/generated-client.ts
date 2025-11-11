@@ -91,14 +91,13 @@ export class AuthClient {
         return Promise.resolve<JwtResponse>(null as any);
     }
 
-    whoAmI(authorization: string | undefined): Promise<JwtClaims> {
+    whoAmI(): Promise<JwtClaims> {
         let url_ = this.baseUrl + "/WhoAmI";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
             method: "POST",
             headers: {
-                "authorization": authorization !== undefined && authorization !== null ? "" + authorization : "",
                 "Accept": "application/json"
             }
         };

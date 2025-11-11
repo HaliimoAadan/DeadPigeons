@@ -12,7 +12,7 @@ namespace api.Etc;
 public static class DiExtensions
 {
     /// <summary>
-    /// Adds a type to Swagger schemas
+    ///     Adds a type to Swagger schemas
     /// </summary>
     public static void AddTypeToSwagger<T>(this OpenApiDocumentGeneratorSettings settings)
     {
@@ -20,8 +20,8 @@ public static class DiExtensions
     }
 
     /// <summary>
-    /// Adds string constants from a static class to OpenAPI schema
-    /// Usage: config.AddStringConstants(typeof(SieveConstants));
+    ///     Adds string constants from a static class to OpenAPI schema
+    ///     Usage: config.AddStringConstants(typeof(SieveConstants));
     /// </summary>
     public static void AddStringConstants(this OpenApiDocumentGeneratorSettings settings, Type type)
     {
@@ -29,7 +29,8 @@ public static class DiExtensions
         var processor = (IDocumentProcessor)Activator.CreateInstance(processorType)!;
         settings.DocumentProcessors.Add(processor);
     }
-     public static async Task GenerateApiClientsFromOpenApi(this WebApplication app, string path)
+
+    public static async Task GenerateApiClientsFromOpenApi(this WebApplication app, string path)
     {
         // Step 1: Generate OpenAPI document with full documentation
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>()
@@ -83,45 +84,35 @@ public static class DiExtensions
     }
 
     /// <summary>
-    /// Adds const objects with actual values for schemas marked with constant values
+    ///     Adds const objects with actual values for schemas marked with constant values
     /// </summary>
     private static string AddConstantObjects(string code, OpenApiDocument document)
     {
         var constantExports = new List<string>();
 
         foreach (var schema in document.Definitions)
-        {
             // Check if schema has constant values extension data
             if (schema.Value.ExtensionData?.TryGetValue("x-constant-values", out var constantValuesObj) == true)
-            {
                 if (constantValuesObj is Dictionary<string, object?> constantValues)
                 {
                     // Generate const object export
                     var constName = schema.Key;
                     var constLines = new List<string>
                     {
-                        $"",
+                        "",
                         $"/** Constant values for {constName} */",
                         $"export const {constName} = {{"
                     };
 
-                    foreach (var kvp in constantValues)
-                    {
-                        constLines.Add($"    {kvp.Key}: \"{kvp.Value}\",");
-                    }
+                    foreach (var kvp in constantValues) constLines.Add($"    {kvp.Key}: \"{kvp.Value}\",");
 
                     // Remove trailing comma from last property
-                    if (constLines.Count > 2)
-                    {
-                        constLines[^1] = constLines[^1].TrimEnd(',');
-                    }
+                    if (constLines.Count > 2) constLines[^1] = constLines[^1].TrimEnd(',');
 
-                    constLines.Add($"}} as const;");
+                    constLines.Add("} as const;");
 
                     constantExports.Add(string.Join(Environment.NewLine, constLines));
                 }
-            }
-        }
 
         // Insert const objects after their interface definitions
         if (constantExports.Count > 0)
@@ -143,6 +134,7 @@ public static class DiExtensions
 
         return code;
     }
+
     public static void AddMyDbContext(this IServiceCollection services)
     {
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -156,22 +148,17 @@ public static class DiExtensions
                 .WithExposedPort("5432").Build();
             postgreSqlContainer.StartAsync().GetAwaiter().GetResult();
             var connectionString = postgreSqlContainer.GetConnectionString();
-            Console.WriteLine("Connecting to DB: "+connectionString);
-            services.AddDbContext<MyDbContext>((services, options) =>
-            {
-                options.UseNpgsql(connectionString);
-            });
+            Console.WriteLine("Connecting to DB: " + connectionString);
+            services.AddDbContext<MyDbContext>((services, options) => { options.UseNpgsql(connectionString); });
         }
         else
         {
             services.AddDbContext<MyDbContext>(
-                (services, options) =>
-                {
-                    options.UseNpgsql(services.GetRequiredService<AppOptions>().Db);
-                },
+                (services, options) => { options.UseNpgsql(services.GetRequiredService<AppOptions>().Db); },
                 ServiceLifetime.Transient);
         }
     }
+
     public static void InjectAppOptions(this IServiceCollection services)
     {
         services.AddSingleton<AppOptions>(provider =>

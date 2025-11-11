@@ -8,12 +8,12 @@
 
 
     <ItemGroup>
-        <PackageReference Include="Bogus" Version="*" />
-        <PackageReference Include="JWT" Version="11.0.0" />
-        <PackageReference Include="NSwag.AspNetCore" Version="*" />
-        <PackageReference Include="Sieve.Query.Builder" Version="1.1.1" />
-        <PackageReference Include="Sieve" Version="2.5.5" />
-        <ProjectReference Include="..\dataccess\dataccess.csproj" />
+        <PackageReference Include="Bogus" Version="*"/>
+        <PackageReference Include="JWT" Version="11.0.0"/>
+        <PackageReference Include="NSwag.AspNetCore" Version="*"/>
+        <PackageReference Include="Sieve.Query.Builder" Version="1.1.1"/>
+        <PackageReference Include="Sieve" Version="2.5.5"/>
+        <ProjectReference Include="..\dataccess\dataccess.csproj"/>
         <PackageReference Include="Testcontainers.PostgreSql" Version="4.7.0"/>
         <PackageReference Include="NSwag.CodeGeneration.TypeScript" Version="*"/>
         <PackageReference Include="Scalar.AspNetCore" Version="2.10.3"/>

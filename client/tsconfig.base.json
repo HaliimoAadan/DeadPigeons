@@ -2,10 +2,13 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -14,12 +17,10 @@
     "emitDeclarationOnly": true,
     "declaration": true,
     "jsx": "react-jsx",
-
     /* Project references */
     "composite": true,
     "outDir": "../../dist",
     "rootDir": ".",
-
     /* Linting */
     "strict": true,
     "noUnusedLocals": false,
@@ -27,5 +28,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
 }

@@ -1,20 +1,28 @@
-import {useAtom} from "jotai";
 import {type Author, type Book, type Genre, type UpdateBookRequestDto} from "../generated-client.ts";
 import type {BookProps} from "./Books.tsx";
-<<<<<<<< Updated upstream:client/src/components/BookDetails.tsx
 import {useEffect, useState} from "react";
-import useLibraryCrud, {libraryApi} from "../useLibraryCrud.ts";
-========
-import {useState} from "react";
 import useLibraryCrud from "../utilities/useLibraryCrud.ts";
->>>>>>>> Stashed changes:client/src/components/Book.tsx
+
+<
+<
+<
+<
+<
+<
+<
+<
+Updated
+client / src / components / BookDetails.tsx
+=== === ==
+>>> >>> >> Stashed
+client / src / components / Book.tsx
 
 export function BookDetails(props: BookProps) {
-    
+
     const libraryCrud = useLibraryCrud();
     const [allAuthors, setAllAuthors] = useState<Author[]>([]);
     const [allGenres, setAllGenres] = useState<Genre[]>([]);
-    
+
     const [updateBookForm, setUpdateBookForm] = useState<UpdateBookRequestDto>({
         authorsIds: props.book.authors && props.book.authors.length > 0 ? props.book.authors.map(a => a.id) : [],
         bookIdForLookupReference: props.book.id!,
@@ -24,10 +32,10 @@ export function BookDetails(props: BookProps) {
     });
 
     useEffect(() => {
-        libraryCrud.getAuthors(setAllAuthors, {filters: "", sorts: "", page: 1, pageSize:1000})
-        libraryCrud.getGenres(setAllGenres, {filters: "", sorts: "", page: 1, pageSize:1000})
+        libraryCrud.getAuthors(setAllAuthors, {filters: "", sorts: "", page: 1, pageSize: 1000})
+        libraryCrud.getGenres(setAllGenres, {filters: "", sorts: "", page: 1, pageSize: 1000})
     }, [])
-  
+
 
     return <li
         className="card bg-base-100 shadow-lg border border-base-300 mb-4 hover:shadow-xl transition-shadow duration-200">
@@ -42,13 +50,13 @@ export function BookDetails(props: BookProps) {
                         {
                             props.book.authors && props.book.authors.length > 0 ? (
                                 <div className="text-sm text-base-content/70">
-                                    Written by: {props.book.authors?.map(a => a.name).join(', ')}  ✍
+                                    Written by: {props.book.authors?.map(a => a.name).join(', ')} ✍
                                 </div>
-                            ) :  <div className="text-sm text-base-content/70">
+                            ) : <div className="text-sm text-base-content/70">
                                 No author has been selected yet
                             </div>
                         }
-                   
+
                     </div>
                 </div>
 

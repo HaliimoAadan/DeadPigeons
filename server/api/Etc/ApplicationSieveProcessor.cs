@@ -6,7 +6,7 @@ using Sieve.Services;
 namespace api.DTOs.Requests.SieveProcessors;
 
 /// <summary>
-/// Custom Sieve processor with fluent API configuration for entities
+///     Custom Sieve processor with fluent API configuration for entities
 /// </summary>
 public class ApplicationSieveProcessor : SieveProcessor
 {

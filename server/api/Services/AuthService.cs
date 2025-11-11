@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using api.DTOs.Requests;
 using dataccess;
@@ -10,54 +12,54 @@ using ValidationException = Bogus.ValidationException;
 
 namespace api.Services;
 
-public class AuthService(MyDbContext ctx, TimeProvider timeProvider, AppOptions appOptions) : IAuthService
+public class AuthService(
+    MyDbContext ctx,
+    ILogger<AuthService> logger,
+    TimeProvider timeProvider,
+    AppOptions appOptions) : IAuthService
 {
-
-    private async Task<string> CreateJwt(Libraryuser user)
-    {
-        return JwtBuilder.Create()
-            .WithAlgorithm(new HMACSHA512Algorithm())
-            .WithSecret(appOptions.JwtSecret)
-            .WithUrlEncoder(new JwtBase64UrlEncoder())
-            .WithJsonSerializer(new JsonNetSerializer())
-            .AddClaim(nameof(Libraryuser.Id), user.Id)
-            .Encode();
-    }
-
     public async Task<JwtClaims> VerifyAndDecodeToken(string token)
     {
         if (string.IsNullOrWhiteSpace(token))
             throw new ValidationException("No token attached!");
 
-        var json = JwtBuilder.Create()
-                .WithAlgorithm(new HMACSHA512Algorithm())
-                .WithSecret(appOptions.JwtSecret)
-                .WithUrlEncoder(new JwtBase64UrlEncoder())
-                .WithJsonSerializer(new JsonNetSerializer())
-                .MustVerifySignature()
-                .Decode(token)
-                   ?? throw new ValidationException("Authentication failed!");
+        var builder = CreateJwtBuilder();
 
-        var jwtClaims = JsonSerializer.Deserialize<JwtClaims>(json, new JsonSerializerOptions()
+        string jsonString;
+        try
+        {
+            jsonString = builder.Decode(token)
+                         ?? throw new ValidationException("Authentication failed!");
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e.Message, e);
+            throw new ValidationException("Valided to verify JWT");
+        }
+
+        var jwtClaims = JsonSerializer.Deserialize<JwtClaims>(jsonString, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         }) ?? throw new ValidationException("Authentication failed!");
+
         _ = ctx.Libraryusers.FirstOrDefault(u => u.Id == jwtClaims.Id)
             ?? throw new ValidationException("Authentication is valid, but user is not found!");
+
         return jwtClaims;
     }
 
     public async Task<JwtResponse> Login(LoginRequestDto dto)
     {
         var user = ctx.Libraryusers.FirstOrDefault(u => u.Email == dto.Email)
-                            ?? throw new ValidationException("User is not found!");
-        var passwordsMatch = user.Passwordhash == 
-                             System.Security.Cryptography.SHA512.HashData(
-                                 System.Text.Encoding.UTF8.GetBytes(dto.Password + user.Salt))
+                   ?? throw new ValidationException("User is not found!");
+        var passwordsMatch = user.Passwordhash ==
+                             SHA512.HashData(
+                                     Encoding.UTF8.GetBytes(dto.Password + user.Salt))
                                  .Aggregate("", (current, b) => current + b.ToString("x2"));
         if (!passwordsMatch)
             throw new ValidationException("Password is incorrect!");
-        var token = await CreateJwt(user);
+
+        var token = CreateJwt(user);
         return new JwtResponse(token);
     }
 
@@ -70,9 +72,9 @@ public class AuthService(MyDbContext ctx, TimeProvider timeProvider, AppOptions 
             throw new ValidationException("Email is already taken");
 
         var salt = Guid.NewGuid().ToString();
-        var hash = System.Security.Cryptography.SHA512.HashData(
-            System.Text.Encoding.UTF8.GetBytes(dto.Password + salt));
-        var user = new Libraryuser()
+        var hash = SHA512.HashData(
+            Encoding.UTF8.GetBytes(dto.Password + salt));
+        var user = new Libraryuser
         {
             Email = dto.Email,
             Createdat = timeProvider.GetUtcNow().DateTime.ToUniversalTime(),
@@ -83,9 +85,25 @@ public class AuthService(MyDbContext ctx, TimeProvider timeProvider, AppOptions 
         };
         ctx.Libraryusers.Add(user);
         await ctx.SaveChangesAsync();
-        
-        var token = await CreateJwt(user);
+
+        var token = CreateJwt(user);
         return new JwtResponse(token);
     }
-    
+
+    private JwtBuilder CreateJwtBuilder()
+    {
+        return JwtBuilder.Create()
+            .WithAlgorithm(new HMACSHA512Algorithm())
+            .WithSecret(appOptions.JwtSecret)
+            .WithUrlEncoder(new JwtBase64UrlEncoder())
+            .WithJsonSerializer(new JsonNetSerializer())
+            .MustVerifySignature();
+    }
+
+    private string CreateJwt(Libraryuser user)
+    {
+        return CreateJwtBuilder()
+            .AddClaim(nameof(Libraryuser.Id), user.Id)
+            .Encode();
+    }
 }

@@ -7,62 +7,62 @@ using Sieve.Services;
 
 namespace api.Services;
 
-public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : ILibraryService
+public class LibraryService(
+    MyDbContext ctx,
+    ISieveProcessor sieveProcessor,
+    TimeProvider timeProvider) : ILibraryService
 {
-    
-
-    public Task<List<Book>> GetBooks(SieveModel sieveModel)
+    public Task<List<Book>> GetBooks(SieveModel sieveModel, JwtClaims user)
     {
-        IQueryable<Book> query =  ctx.Books;
+        IQueryable<Book> query = ctx.Books;
 
         // Apply Sieve FIRST (filtering, sorting, pagination)
         query = sieveProcessor.Apply(sieveModel, query);
 
         // Then include related data - but DON'T nest further to avoid cycles
         return query
-            .Include(b => b.Genre)  // Genre won't include its Books
+            .Include(b => b.Genre) // Genre won't include its Books
             .Include(b => b.Authors) // Authors won't include their Books
             .AsSplitQuery()
             .ToListAsync();
     }
 
-    public Task<List<Genre>> GetGenres(SieveModel sieveModel)
+    public Task<List<Genre>> GetGenres(SieveModel sieveModel, JwtClaims requester)
     {
-        IQueryable<Genre> query =  ctx.Genres;
+        IQueryable<Genre> query = ctx.Genres;
 
         // Apply Sieve FIRST (filtering, sorting, pagination)
         query = sieveProcessor.Apply(sieveModel, query);
 
         // Include Books but DON'T include nested Authors to avoid cycles
         return query
-            .Include(g => g.Books) 
+            .Include(g => g.Books)
             .AsSplitQuery()
             .ToListAsync();
     }
-    
-    public async Task<List<Author>> GetAuthors(SieveModel sieveModel)
+
+    public async Task<List<Author>> GetAuthors(SieveModel sieveModel, JwtClaims requester)
     {
         IQueryable<Author> query = ctx.Authors;
 
-            // Normal path: Apply Sieve FIRST (filtering, sorting, pagination)
-            query = sieveProcessor.Apply(sieveModel, query);
+        // Normal path: Apply Sieve FIRST (filtering, sorting, pagination)
+        query = sieveProcessor.Apply(sieveModel, query);
 
-            // Include Books but DON'T include nested Genre/Authors to avoid cycles
-            return await query
-                .Include(a => a.Books)
-                .AsSplitQuery()
-                .ToListAsync();
-        
+        // Include Books but DON'T include nested Genre/Authors to avoid cycles
+        return await query
+            .Include(a => a.Books)
+            .AsSplitQuery()
+            .ToListAsync();
     }
 
-    public async Task<Book> CreateBook(CreateBookRequestDto dto)
+    public async Task<Book> CreateBook(CreateBookRequestDto dto, JwtClaims requester)
     {
         Validator.ValidateObject(dto, new ValidationContext(dto), true);
 
         var book = new Book
         {
             Pages = dto.Pages,
-            Createdat = DateTime.UtcNow,
+            Createdat = timeProvider.GetUtcNow().DateTime.ToUniversalTime(),
             Id = Guid.NewGuid().ToString(),
             Title = dto.Title
         };
@@ -71,7 +71,7 @@ public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : I
         return book;
     }
 
-    public async Task<Book> UpdateBook(UpdateBookRequestDto dto)
+    public async Task<Book> UpdateBook(UpdateBookRequestDto dto, JwtClaims requester)
     {
         Validator.ValidateObject(dto, new ValidationContext(dto), true);
         var book = ctx.Books.First(b => b.Id == dto.BookIdForLookupReference);
@@ -88,7 +88,7 @@ public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : I
         return book;
     }
 
-    public async Task<Book> DeleteBook(string bookId)
+    public async Task<Book> DeleteBook(string bookId, JwtClaims requester)
     {
         var book = ctx.Books.First(b => b.Id == bookId);
         ctx.Books.Remove(book);
@@ -96,14 +96,14 @@ public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : I
         return book;
     }
 
-    public async Task<Author> CreateAuthor(CreateAuthorRequestDto dto)
+    public async Task<Author> CreateAuthor(CreateAuthorRequestDto dto, JwtClaims requester)
     {
         Validator.ValidateObject(dto, new ValidationContext(dto), true);
 
         var author = new Author
         {
             Id = Guid.NewGuid().ToString(),
-            Createdat = DateTime.UtcNow,
+            Createdat = timeProvider.GetUtcNow().DateTime.ToUniversalTime(),
             Name = dto.Name
         };
         ctx.Authors.Add(author);
@@ -111,7 +111,7 @@ public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : I
         return author;
     }
 
-    public async Task<Author> UpdateAuthor(UpdateAuthorRequestDto dto)
+    public async Task<Author> UpdateAuthor(UpdateAuthorRequestDto dto, JwtClaims requester)
     {
         Validator.ValidateObject(dto, new ValidationContext(dto), true);
         var author = ctx.Authors.First(a => a.Id == dto.AuthorIdForLookup);
@@ -123,7 +123,7 @@ public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : I
         return author;
     }
 
-    public async Task<Author> DeleteAuthor(string authorId)
+    public async Task<Author> DeleteAuthor(string authorId, JwtClaims requester)
     {
         var author = ctx.Authors.First(a => a.Id == authorId);
         ctx.Authors.Remove(author);
@@ -131,14 +131,14 @@ public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : I
         return author;
     }
 
-    public async Task<Genre> CreateGenre(CreateGenreDto dto)
+    public async Task<Genre> CreateGenre(CreateGenreDto dto, JwtClaims requester)
     {
         Validator.ValidateObject(dto, new ValidationContext(dto), true);
 
         var genre = new Genre
         {
             Id = Guid.NewGuid().ToString(),
-            Createdat = DateTime.UtcNow,
+            Createdat = timeProvider.GetUtcNow().DateTime.ToUniversalTime(),
             Name = dto.Name
         };
         ctx.Genres.Add(genre);
@@ -146,7 +146,7 @@ public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : I
         return genre;
     }
 
-    public async Task<Genre> DeleteGenre(string genreId)
+    public async Task<Genre> DeleteGenre(string genreId, JwtClaims requester)
     {
         var genre = ctx.Genres.First(a => a.Id == genreId);
         ctx.Genres.Remove(genre);
@@ -154,7 +154,7 @@ public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : I
         return genre;
     }
 
-    public async Task<Genre> UpdateGenre(UpdateGenreRequestDto dto)
+    public async Task<Genre> UpdateGenre(UpdateGenreRequestDto dto, JwtClaims requester)
     {
         Validator.ValidateObject(dto, new ValidationContext(dto), true);
 
@@ -163,9 +163,4 @@ public class LibraryService(MyDbContext ctx, ISieveProcessor sieveProcessor) : I
         await ctx.SaveChangesAsync();
         return genre;
     }
-    
-
- 
-
-    
 }

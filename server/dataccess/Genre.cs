@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace dataccess;
 
-namespace dataccess;
-
-public partial class Genre
+public class Genre
 {
     public string Id { get; set; } = null!;
 

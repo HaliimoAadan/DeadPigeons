@@ -1,18 +1,23 @@
-<<<<<<< Updated upstream:client/src/Components/Books.tsx
-import {useEffect, useState} from "react";
+<
+<
+<
+<
+<
+<< Updated upstream:client/src/Components/Books.tsx
+           import {useEffect, useState} from "react";
 import {type Book, type CreateBookRequestDto} from "../generated-client.ts";
-import useLibraryCrud from "../useLibraryCrud.ts";
 import {BookDetails} from "./BookDetails.tsx";
 import {useSearchParams} from "react-router";
 import {SieveQueryBuilder} from "ts-sieve-query-builder";
-=======
-import {useAtom} from "jotai";
-import {AllAuthorsAtom, AllBooksAtom} from "../atoms/atoms.ts";
 import {useState} from "react";
-import {type BookDto, type CreateBookRequestDto} from "../generated-client.ts";
 import {Book} from "./Book.tsx";
 import useLibraryCrud from "../utilities/useLibraryCrud.ts";
->>>>>>> Stashed changes:client/src/components/Books.tsx
+
+======
+=
+>>>>>>>
+Stashed
+client / src / components / Books.tsx
 
 export interface BookProps {
     book: Book,
@@ -82,7 +87,10 @@ export default function Books() {
                                 type="number"
                                 placeholder="Pages"
                                 className="input input-bordered w-full"
-                                onChange={e => setCreateBookForm({...createBookForm, pages: Number.parseInt(e.target.value)})}
+                                onChange={e => setCreateBookForm({
+                                    ...createBookForm,
+                                    pages: Number.parseInt(e.target.value)
+                                })}
                             />
                         </div>
                         <button
@@ -92,8 +100,10 @@ export default function Books() {
                                 setCreateBookForm({pages: 1, title: "My Amazing New Book"});
                             }}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-4 h-4 stroke-current">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 className="w-4 h-4 stroke-current">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                      d="M12 4v16m8-8H4"></path>
                             </svg>
                             Create Book
                         </button>
@@ -101,7 +111,7 @@ export default function Books() {
                 </div>
             </div>
         </div>
-        
+
         {/*Filter books*/}
         <div className="p-5 pt-0">
             <div className="form-control">
@@ -130,7 +140,8 @@ export default function Books() {
 
         <ul className="list bg-base-100 rounded-box shadow-md mx-5">
             {
-                allBooks && allBooks.length > 0 && allBooks.map(b => <BookDetails key={b.id} book={b} setAllBooks={setAllBooks} />)
+                allBooks && allBooks.length > 0 && allBooks.map(b => <BookDetails key={b.id} book={b}
+                                                                                  setAllBooks={setAllBooks}/>)
             }
         </ul>
 

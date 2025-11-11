@@ -1,16 +1,21 @@
-import {useAtom} from "jotai";
-<<<<<<< Updated upstream:client/src/Components/Genres.tsx
-import {useEffect, useState} from "react";
 import {type CreateGenreDto, type Genre} from "../generated-client.ts";
 import {GenreDetails} from "./GenreDetails.tsx";
-import useLibraryCrud from "../useLibraryCrud.ts";
-=======
-import {AllGenresAtom} from "../atoms/atoms.ts";
 import {useState} from "react";
-import {type GenreDto, type CreateGenreDto} from "../generated-client.ts";
 import {Genre} from "./Genre.tsx";
 import useLibraryCrud from "../utilities/useLibraryCrud.ts";
->>>>>>> Stashed changes:client/src/components/Genres.tsx
+
+<
+<
+<
+<
+<
+<< Updated upstream:client/src/Components/Genres.tsx
+           import {useEffect, useState} from "react";
+======
+=
+>>>>>>>
+Stashed
+client / src / components / Genres.tsx
 
 export interface GenreProps {
     setGenre: React.Dispatch<React.SetStateAction<Genre[]>>;
@@ -32,7 +37,7 @@ export default function Genres() {
             sorts: "",
             filters: ""
         })
-        }, [])
+    }, [])
 
     return <>
         <div className="p-5">
@@ -62,8 +67,10 @@ export default function Genres() {
                                 setCreateGenreForm({name: "New Genre"});
                             }}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-4 h-4 stroke-current">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 className="w-4 h-4 stroke-current">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                      d="M12 4v16m8-8H4"></path>
                             </svg>
                             Create Genre
                         </button>
@@ -74,7 +81,7 @@ export default function Genres() {
 
         <ul className="list bg-base-100 rounded-box shadow-md mx-5">
             {
-                genres.map(g => <GenreDetails key={g.id} genre={g} setGenre={setAllGenres} />)
+                genres.map(g => <GenreDetails key={g.id} genre={g} setGenre={setAllGenres}/>)
             }
         </ul>
     </>

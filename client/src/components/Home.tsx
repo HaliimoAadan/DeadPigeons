@@ -1,13 +1,13 @@
 import {Outlet, useNavigate} from "react-router";
 
 export default function Home() {
-    
+
     const navigate = useNavigate();
-    
+
     return <>
 
-        
-        <Outlet />
+
+        <Outlet/>
 
         <div className="dock">
             <button className="btn btn-outline" onClick={() => navigate('books')}>

@@ -1,23 +1,20 @@
-<<<<<<< Updated upstream:client/src/useLibraryCrud.ts
-=======
-import {AllAuthorsAtom, AllBooksAtom, AllGenresAtom} from "../atoms/atoms.ts";
-import {useAtom} from "jotai";
->>>>>>> Stashed changes:client/src/utilities/useLibraryCrud.ts
-import type {
-    Author,
-    Book,
-    CreateAuthorRequestDto,
-    CreateBookRequestDto,
-    CreateGenreDto, Genre, SieveModel,
-    UpdateAuthorRequestDto,
-    UpdateBookRequestDto,
-    UpdateGenreRequestDto
-} from "./generated-client.ts";
-import {LibraryClient} from "./generated-client.ts";
 import customCatch from "../core/customCatch.ts";
 import toast from "react-hot-toast";
 import type {Dispatch, SetStateAction} from "react";
 import {resolveRefs} from "dotnet-json-refs";
+import {
+    type Author,
+    type Book,
+    type CreateAuthorRequestDto,
+    type CreateBookRequestDto,
+    type CreateGenreDto,
+    type Genre,
+    LibraryClient,
+    type UpdateAuthorRequestDto,
+    type UpdateBookRequestDto,
+    type UpdateGenreRequestDto
+} from "../core/generated-client.ts";
+import type {SieveModel} from "ts-sieve-query-builder";
 
 const isProduction = import.meta.env.PROD;
 
@@ -26,8 +23,23 @@ const dev = "http://localhost:5284";
 
 const finalUrl = isProduction ? prod : dev;
 
+const customFetch = {
+    fetch(url: RequestInfo, init?: RequestInit): Promise<Response> {
+        const token = localStorage.getItem('jwt');
+        const headers = new Headers(init?.headers);
 
-export const libraryApi = new LibraryClient(finalUrl)
+        if (token) {
+            headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        return window.fetch(url, {
+            ...init,
+            headers
+        });
+    }
+};
+
+export const libraryApi = new LibraryClient(finalUrl, customFetch);
 
 export default function useLibraryCrud() {
 
@@ -186,13 +198,12 @@ export default function useLibraryCrud() {
             customCatch(e);
         }
     }
-    
+
     async function getAuthors(setAuthors: Dispatch<SetStateAction<Author[]>>, sieveModel: SieveModel) {
         try {
             const result = resolveRefs(await libraryApi.getAuthors((sieveModel)));
             setAuthors(Array.isArray(result) ? result : []);
-        }
-        catch (e: any) {
+        } catch (e: any) {
             customCatch(e);
         }
     }
@@ -201,8 +212,7 @@ export default function useLibraryCrud() {
         try {
             const result = resolveRefs(await libraryApi.getBooks((sieveModel)));
             setBooks(Array.isArray(result) ? result : []);
-        }
-        catch (e: any) {
+        } catch (e: any) {
             customCatch(e);
         }
     }
@@ -211,8 +221,7 @@ export default function useLibraryCrud() {
         try {
             const result = resolveRefs(await libraryApi.getGenres((sieveModel)));
             setGenres(Array.isArray(result) ? result : []);
-        }
-        catch (e: any) {
+        } catch (e: any) {
             customCatch(e);
         }
     }
