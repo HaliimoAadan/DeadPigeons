@@ -30,4 +30,9 @@
         <PackageReference Include="Scalar.AspNetCore" Version="2.10.3" />
     </ItemGroup>
 
+
+    <ItemGroup>
+      <ProjectReference Include="..\efscaffold\efscaffold.csproj" />
+    </ItemGroup>
+
 </Project>
