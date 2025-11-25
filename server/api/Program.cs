@@ -1,9 +1,13 @@
 using System.Text.Json.Serialization;
 using api.Etc;
 using api.Services;
+using dataccess;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Sieve.Models;
 using Sieve.Services;
+using MyDbContext = Infrastructure.Postgres.Scaffolding.MyDbContext;
 
 namespace api;
 
@@ -38,8 +42,59 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder();
 
+        builder.Services.AddDbContext<MyDbContext>(conf =>
+        {
+            conf.UseNpgsql(
+                connectionString:
+                "Host=ep-icy-pond-ag8lk8z2-pooler.c-2.eu-central-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_iaJlUvteVL87;Ssl Mode=Require;Channel Binding=Require"
+            );
+        });
         ConfigureServices(builder.Services);
+        
         var app = builder.Build();
+        
+        // Admins
+        app.MapGet("/admins", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Admins.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Players
+        app.MapGet("/players", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Players.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Games
+        app.MapGet("/games", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Games.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Boards
+        app.MapGet("/boards", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Boards.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Transactions
+        app.MapGet("/transactions", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Transactions.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Winningboards
+        app.MapGet("/winningboards", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Winningboards.ToListAsync();
+            return Results.Ok(objects);
+        });
+       
         app.UseExceptionHandler(config => { });
         app.UseOpenApi();
         app.UseSwaggerUi();
