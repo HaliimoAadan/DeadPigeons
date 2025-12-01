@@ -1,9 +1,13 @@
 using System.Text.Json.Serialization;
 using api.Etc;
 using api.Services;
+using dataccess;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Sieve.Models;
 using Sieve.Services;
+using MyDbContext = Infrastructure.Postgres.Scaffolding.MyDbContext;
 
 namespace api;
 
@@ -19,7 +23,19 @@ public class Program
             opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
             opts.JsonSerializerOptions.MaxDepth = 128;
         });
-        services.AddOpenApiDocument(config => { config.AddStringConstants(typeof(SieveConstants)); });
+
+        
+        services.AddOpenApiDocument(config =>
+        {
+            config.PostProcess = document =>
+            {
+                document.Info.Title = "Dead Pigeons API";
+                document.Info.Version = "1.0.0";
+                document.Info.Description = "API for the Dead Pigeons bingo project.";
+            };
+            config.AddStringConstants(typeof(SieveConstants));
+        });
+
         services.AddCors();
         services.AddScoped<ILibraryService, LibraryService>();
         services.AddScoped<IAuthService, AuthService>();
@@ -38,8 +54,57 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder();
 
+        builder.Services.AddDbContext<MyDbContext>(conf =>
+        {
+            conf.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+        });
         ConfigureServices(builder.Services);
+        
         var app = builder.Build();
+        
+        // Admins
+        app.MapGet("/admins", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Admins.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Players
+        app.MapGet("/players", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Players.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Games
+        app.MapGet("/games", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Games.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Boards
+        app.MapGet("/boards", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Boards.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Transactions
+        app.MapGet("/transactions", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Transactions.ToListAsync();
+            return Results.Ok(objects);
+        });
+
+        // Winningboards
+        app.MapGet("/winningboards", async ([FromServices] MyDbContext dbContext) =>
+        {
+            var objects = await dbContext.Winningboards.ToListAsync();
+            return Results.Ok(objects);
+        });
+       
         app.UseExceptionHandler(config => { });
         app.UseOpenApi();
         app.UseSwaggerUi();

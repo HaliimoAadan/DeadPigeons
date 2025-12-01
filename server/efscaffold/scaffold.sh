@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
+set -a
+source .env
+set +a
 
-echo "=== Running EF Core Scaffold on schema deadpigeons ==="
+echo "=== Running EF Core Scaffold ==="
 
 dotnet ef dbcontext scaffold \
-  "Host=ep-icy-pond-ag8lk8z2-pooler.c-2.eu-central-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_iaJlUvteVL87;Ssl Mode=Require;Channel Binding=Require" \
+  "$CONN_STR" \
   Npgsql.EntityFrameworkCore.PostgreSQL \
   --output-dir ./Entities \
   --context-dir . \

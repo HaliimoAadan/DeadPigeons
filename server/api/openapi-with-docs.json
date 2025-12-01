@@ -1,8 +1,9 @@
 {
-  "x-generator": "NSwag v14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))",
+  "x-generator": "NSwag v14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))",
   "openapi": "3.0.0",
   "info": {
-    "title": "My Title",
+    "title": "Dead Pigeons API",
+    "description": "API for the Dead Pigeons bingo project.",
     "version": "1.0.0"
   },
   "paths": {
