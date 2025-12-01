@@ -6,6 +6,7 @@ appsettings.json
 # dotenv files
 .env
 claude
+appsettings.json
 
 # User-specific files
 *.rsuser

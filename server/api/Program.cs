@@ -23,7 +23,19 @@ public class Program
             opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
             opts.JsonSerializerOptions.MaxDepth = 128;
         });
-        services.AddOpenApiDocument(config => { config.AddStringConstants(typeof(SieveConstants)); });
+
+        
+        services.AddOpenApiDocument(config =>
+        {
+            config.PostProcess = document =>
+            {
+                document.Info.Title = "Dead Pigeons API";
+                document.Info.Version = "1.0.0";
+                document.Info.Description = "API for the Dead Pigeons bingo project.";
+            };
+            config.AddStringConstants(typeof(SieveConstants));
+        });
+
         services.AddCors();
         services.AddScoped<ILibraryService, LibraryService>();
         services.AddScoped<IAuthService, AuthService>();
@@ -44,10 +56,8 @@ public class Program
 
         builder.Services.AddDbContext<MyDbContext>(conf =>
         {
-            conf.UseNpgsql(
-                connectionString:
-                "Host=ep-icy-pond-ag8lk8z2-pooler.c-2.eu-central-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_iaJlUvteVL87;Ssl Mode=Require;Channel Binding=Require"
-            );
+            conf.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+
         });
         ConfigureServices(builder.Services);
         
