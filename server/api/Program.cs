@@ -20,7 +20,7 @@ public class Program
         services.AddMyDbContext();
         services.AddControllers().AddJsonOptions(opts =>
         {
-            opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+            opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             opts.JsonSerializerOptions.MaxDepth = 128;
         });
 
