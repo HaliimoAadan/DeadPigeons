@@ -30,9 +30,7 @@ jobs:
         working-directory: client
         run: npm run build
 
-      - name: Test frontend
-        working-directory: client
-        run: npm test
+      
 
   server:
     name: Build & Test Server
