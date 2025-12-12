@@ -6,7 +6,6 @@ using NSwag;
 using NSwag.CodeGeneration.TypeScript;
 using NSwag.Generation;
 using NSwag.Generation.Processors;
-using Testcontainers.PostgreSql;
 
 namespace api.Etc;
 
@@ -138,26 +137,30 @@ public static class DiExtensions
 
     public static void AddMyDbContext(this IServiceCollection services)
     {
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        if (environment != "Production")
+        services.AddDbContext<MyDbContext>((serviceProvider, options) =>
         {
-            var postgreSqlContainer = new PostgreSqlBuilder()
-                .WithDatabase("postgres")
-                .WithUsername("postgres")
-                .WithPassword("postgres")
-                .WithPortBinding("5432", true)
-                .WithExposedPort("5432").Build();
-            postgreSqlContainer.StartAsync().GetAwaiter().GetResult();
-            var connectionString = postgreSqlContainer.GetConnectionString();
-            Console.WriteLine("Connecting to DB: " + connectionString);
-            services.AddDbContext<MyDbContext>((services, options) => { options.UseNpgsql(connectionString); });
-        }
-        else
-        {
-            services.AddDbContext<MyDbContext>(
-                (services, options) => { options.UseNpgsql(services.GetRequiredService<AppOptions>().Db); },
-                ServiceLifetime.Transient);
-        }
+            // read config from standard .NET configuration
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+
+            var connectionString = configuration.GetConnectionString("AppDb");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                connectionString = serviceProvider
+                    .GetRequiredService<AppOptions>()
+                    .Db;
+            }
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "PostgreSQL connection string is not configured."
+                );
+            }
+
+            options.UseNpgsql(connectionString);
+        });
+    
     }
 
     public static void InjectAppOptions(this IServiceCollection services)
