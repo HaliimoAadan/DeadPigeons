@@ -25,6 +25,10 @@ jobs:
       - name: Install frontend dependencies
         working-directory: client
         run: npm install
+      
+      - name: Install jotai
+        working-directory: client
+        run: npm i jotai
 
       - name: Build frontend
         working-directory: client
