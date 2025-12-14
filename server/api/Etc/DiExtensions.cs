@@ -142,7 +142,7 @@ public static class DiExtensions
             // read config from standard .NET configuration
             var configuration = serviceProvider.GetRequiredService<IConfiguration>();
 
-            var connectionString = configuration.GetConnectionString("AppDb");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             if (string.IsNullOrWhiteSpace(connectionString))
             {
