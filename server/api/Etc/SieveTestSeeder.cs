@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Bogus;
 using dataccess;
+using Npgsql;
 
 namespace api.Etc;
 
@@ -9,94 +10,104 @@ public class SieveTestSeeder(MyDbContext ctx, TimeProvider timeProvider) : ISeed
 {
     public async Task Seed()
     {
-        await ctx.Database.EnsureCreatedAsync();
-        // Clear existing data
-        ctx.Books.RemoveRange(ctx.Books);
-        ctx.Authors.RemoveRange(ctx.Authors);
-        ctx.Genres.RemoveRange(ctx.Genres);
-        ctx.Libraryusers.RemoveRange(ctx.Libraryusers);
-        await ctx.SaveChangesAsync();
+            try
+            {
 
-        var salt = Guid.NewGuid().ToString();
-        var hash = SHA512.HashData(
-            Encoding.UTF8.GetBytes("test@user.dk" + salt));
-        var user = new Libraryuser
-        {
-            Email = "test@user.dk",
-            Createdat = timeProvider.GetUtcNow().DateTime.ToUniversalTime(),
-            Id = "test@user.dk",
-            Salt = salt,
-            Passwordhash = hash.Aggregate("", (current, b) => current + b.ToString("x2")),
-            Role = "User"
-        };
-        ctx.Libraryusers.Add(user);
-        await ctx.SaveChangesAsync();
+                await ctx.Database.EnsureCreatedAsync();
+                // Clear existing data
+                ctx.Books.RemoveRange(ctx.Books);
+                ctx.Authors.RemoveRange(ctx.Authors);
+                ctx.Genres.RemoveRange(ctx.Genres);
+                ctx.Libraryusers.RemoveRange(ctx.Libraryusers);
+                await ctx.SaveChangesAsync();
 
-        // Set a deterministic seed for reproducibility
-        Randomizer.Seed = new Random(12345);
+                var salt = Guid.NewGuid().ToString();
+                var hash = SHA512.HashData(
+                    Encoding.UTF8.GetBytes("test@user.dk" + salt));
+                var user = new Libraryuser
+                {
+                    Email = "test@user.dk",
+                    Createdat = timeProvider.GetUtcNow().DateTime.ToUniversalTime(),
+                    Id = "test@user.dk",
+                    Salt = salt,
+                    Passwordhash = hash.Aggregate("", (current, b) => current + b.ToString("x2")),
+                    Role = "User"
+                };
+                ctx.Libraryusers.Add(user);
+                await ctx.SaveChangesAsync();
 
-        // Create genres (50 genres with varied, realistic names)
-        var genreFaker = new Faker<Genre>()
-            .RuleFor(g => g.Id, f => Guid.NewGuid().ToString())
-            .RuleFor(g => g.Name, f => f.PickRandom(
-                "Science Fiction", "Fantasy", "Mystery", "Thriller", "Romance",
-                "Horror", "Historical Fiction", "Biography", "Autobiography", "Self-Help",
-                "Business", "Philosophy", "Poetry", "Drama", "Adventure",
-                "Crime", "Western", "Dystopian", "Paranormal", "Contemporary",
-                "Classic", "Young Adult", "Children's Literature", "Graphic Novel", "Memoir",
-                "True Crime", "Travel", "Cookbook", "Art & Photography", "Science",
-                "History", "Politics", "Religion & Spirituality", "Psychology", "Sociology",
-                "Economics", "Technology", "Health & Fitness", "Parenting", "Education",
-                "Literary Fiction", "Urban Fantasy", "Space Opera", "Cyberpunk", "Steampunk",
-                "Military Fiction", "Legal Thriller", "Medical Thriller", "Spy Fiction", "Satire"
-            ))
-            .RuleFor(g => g.Createdat, f => f.Date.Past(5).ToUniversalTime());
+                // Set a deterministic seed for reproducibility
+                Randomizer.Seed = new Random(12345);
 
-        var genres = genreFaker.Generate(50);
-        ctx.Genres.AddRange(genres);
-        await ctx.SaveChangesAsync();
+                // Create genres (50 genres with varied, realistic names)
+                var genreFaker = new Faker<Genre>()
+                    .RuleFor(g => g.Id, f => Guid.NewGuid().ToString())
+                    .RuleFor(g => g.Name, f => f.PickRandom(
+                        "Science Fiction", "Fantasy", "Mystery", "Thriller", "Romance",
+                        "Horror", "Historical Fiction", "Biography", "Autobiography", "Self-Help",
+                        "Business", "Philosophy", "Poetry", "Drama", "Adventure",
+                        "Crime", "Western", "Dystopian", "Paranormal", "Contemporary",
+                        "Classic", "Young Adult", "Children's Literature", "Graphic Novel", "Memoir",
+                        "True Crime", "Travel", "Cookbook", "Art & Photography", "Science",
+                        "History", "Politics", "Religion & Spirituality", "Psychology", "Sociology",
+                        "Economics", "Technology", "Health & Fitness", "Parenting", "Education",
+                        "Literary Fiction", "Urban Fantasy", "Space Opera", "Cyberpunk", "Steampunk",
+                        "Military Fiction", "Legal Thriller", "Medical Thriller", "Spy Fiction", "Satire"
+                    ))
+                    .RuleFor(g => g.Createdat, f => f.Date.Past(5).ToUniversalTime());
 
-        // Create authors (500 authors with realistic names)
-        var authorFaker = new Faker<Author>()
-            .RuleFor(a => a.Id, f => Guid.NewGuid().ToString())
-            .RuleFor(a => a.Name, f => f.Name.FullName())
-            .RuleFor(a => a.Createdat, f => f.Date.Past(10).ToUniversalTime());
+                var genres = genreFaker.Generate(50);
+                ctx.Genres.AddRange(genres);
+                await ctx.SaveChangesAsync();
 
-        var authors = authorFaker.Generate(500);
-        ctx.Authors.AddRange(authors);
-        await ctx.SaveChangesAsync();
+                // Create authors (500 authors with realistic names)
+                var authorFaker = new Faker<Author>()
+                    .RuleFor(a => a.Id, f => Guid.NewGuid().ToString())
+                    .RuleFor(a => a.Name, f => f.Name.FullName())
+                    .RuleFor(a => a.Createdat, f => f.Date.Past(10).ToUniversalTime());
 
-        // Create books (5000 books with highly varied, realistic titles)
-        // This ensures obscure queries will likely return results
-        var bookFaker = new Faker<Book>()
-            .RuleFor(b => b.Id, f => Guid.NewGuid().ToString())
-            .RuleFor(b => b.Title, f => GenerateRealisticBookTitle(f))
-            .RuleFor(b => b.Pages, f => f.Random.Number(50, 1200))
-            .RuleFor(b => b.Createdat, f => f.Date.Past(20).ToUniversalTime())
-            .RuleFor(b => b.Genreid, f => f.PickRandom(genres).Id);
+                var authors = authorFaker.Generate(500);
+                ctx.Authors.AddRange(authors);
+                await ctx.SaveChangesAsync();
 
-        var books = bookFaker.Generate(5000);
-        ctx.Books.AddRange(books);
-        await ctx.SaveChangesAsync();
+                // Create books (5000 books with highly varied, realistic titles)
+                // This ensures obscure queries will likely return results
+                var bookFaker = new Faker<Book>()
+                    .RuleFor(b => b.Id, f => Guid.NewGuid().ToString())
+                    .RuleFor(b => b.Title, f => GenerateRealisticBookTitle(f))
+                    .RuleFor(b => b.Pages, f => f.Random.Number(50, 1200))
+                    .RuleFor(b => b.Createdat, f => f.Date.Past(20).ToUniversalTime())
+                    .RuleFor(b => b.Genreid, f => f.PickRandom(genres).Id);
 
-        // Create author-book relationships (many-to-many)
-        // Each book will have 1-4 authors randomly assigned
-        var random = new Random(12345);
-        foreach (var book in books)
-        {
-            var numAuthors = random.Next(1, 5); // 1 to 4 authors
-            var selectedAuthors = authors.OrderBy(x => random.Next()).Take(numAuthors);
+                var books = bookFaker.Generate(5000);
+                ctx.Books.AddRange(books);
+                await ctx.SaveChangesAsync();
 
-            foreach (var author in selectedAuthors) book.Authors.Add(author);
+                // Create author-book relationships (many-to-many)
+                // Each book will have 1-4 authors randomly assigned
+                var random = new Random(12345);
+                foreach (var book in books)
+                {
+                    var numAuthors = random.Next(1, 5); // 1 to 4 authors
+                    var selectedAuthors = authors.OrderBy(x => random.Next()).Take(numAuthors);
+
+                    foreach (var author in selectedAuthors) book.Authors.Add(author);
+                }
+
+                await ctx.SaveChangesAsync();
+
+                // Stop tracking
+                ctx.ChangeTracker.Clear();
+
+            }
+            catch (PostgresException ex) when (ex.SqlState == "42P01")
+            {
+                // Skip seeding when the library schema/tables are missing so the API can start
+                Console.WriteLine($"Skipping SieveTestSeeder because required tables are missing: {ex.MessageText}");
+            }
         }
 
-        await ctx.SaveChangesAsync();
-
-        // Stop tracking
-        ctx.ChangeTracker.Clear();
-    }
-
-    private static string GenerateRealisticBookTitle(Faker f)
+        private static string GenerateRealisticBookTitle(Faker f)
     {
         // Generate diverse, realistic book titles with varied structures
         var titleType = f.Random.Number(0, 9);
