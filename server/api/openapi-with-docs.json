@@ -325,23 +325,35 @@
         }
       }
     },
-    "/api/Transactions": {
+    "/api/Transactions/submit": {
       "post": {
         "tags": [
           "Transactions"
         ],
-        "operationId": "Transactions_Create",
+        "operationId": "Transactions_Submit",
+        "parameters": [
+          {
+            "name": "X-Player-Id",
+            "x-originalName": "playerId",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
         "requestBody": {
           "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateTransactionDto"
+                "$ref": "#/components/schemas/SubmitTransactionDto"
               }
             }
           },
           "required": true,
-          "x-position": 1
+          "x-position": 2
         },
         "responses": {
           "201": {
@@ -370,6 +382,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Transactions": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "operationId": "Transactions_Create",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTransactionDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -405,12 +450,10 @@
           "200": {
             "description": "",
             "content": {
-              "application/json": {
+              "application/octet-stream": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AdminTransactionListItemDto"
-                  }
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -439,19 +482,10 @@
           "200": {
             "description": "",
             "content": {
-              "application/json": {
+              "application/octet-stream": {
                 "schema": {
-                  "$ref": "#/components/schemas/TransactionResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -490,25 +524,13 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": "",
             "content": {
-              "application/json": {
+              "application/octet-stream": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -838,6 +860,23 @@
           }
         }
       },
+      "SubmitTransactionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mobilePayReqId"
+        ],
+        "properties": {
+          "mobilePayReqId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "amount": {
+            "type": "number",
+            "format": "decimal"
+          }
+        }
+      },
       "CreateTransactionDto": {
         "type": "object",
         "additionalProperties": false,
@@ -871,43 +910,6 @@
           "status": {
             "type": "string",
             "minLength": 1
-          }
-        }
-      },
-      "AdminTransactionListItemDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "transactionId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "mobilePayReqId": {
-            "type": "string"
-          },
-          "playerId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "playerFirstName": {
-            "type": "string"
-          },
-          "playerLastName": {
-            "type": "string"
-          },
-          "playerEmail": {
-            "type": "string"
-          },
-          "amount": {
-            "type": "number",
-            "format": "decimal"
-          },
-          "status": {
-            "type": "string"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       }

@@ -422,8 +422,8 @@ export class TransactionsClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    create(dto: CreateTransactionDto): Promise<TransactionResponseDto> {
-        let url_ = this.baseUrl + "/api/Transactions";
+    submit(playerId: string | undefined, dto: SubmitTransactionDto): Promise<TransactionResponseDto> {
+        let url_ = this.baseUrl + "/api/Transactions/submit";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(dto);
@@ -432,17 +432,18 @@ export class TransactionsClient {
             body: content_,
             method: "POST",
             headers: {
+                "X-Player-Id": playerId !== undefined && playerId !== null ? "" + playerId : "",
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCreate(_response);
+            return this.processSubmit(_response);
         });
     }
 
-    protected processCreate(response: Response): Promise<TransactionResponseDto> {
+    protected processSubmit(response: Response): Promise<TransactionResponseDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
@@ -471,7 +472,49 @@ export class TransactionsClient {
         return Promise.resolve<TransactionResponseDto>(null as any);
     }
 
-    list(status: string | null | undefined, search: string | null | undefined): Promise<AdminTransactionListItemDto[]> {
+    create(dto: CreateTransactionDto): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Transactions";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreate(_response);
+        });
+    }
+
+    protected processCreate(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
+    list(status: string | null | undefined, search: string | null | undefined): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Transactions?";
         if (status !== undefined && status !== null)
             url_ += "status=" + encodeURIComponent("" + status) + "&";
@@ -482,7 +525,7 @@ export class TransactionsClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "application/json"
+                "Accept": "application/octet-stream"
             }
         };
 
@@ -491,24 +534,29 @@ export class TransactionsClient {
         });
     }
 
-    protected processList(response: Response): Promise<AdminTransactionListItemDto[]> {
+    protected processList(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as AdminTransactionListItemDto[];
-            return result200;
-            });
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<AdminTransactionListItemDto[]>(null as any);
+        return Promise.resolve<FileResponse>(null as any);
     }
 
-    getByNumber(mobilePayReqId: string): Promise<TransactionResponseDto> {
+    getByNumber(mobilePayReqId: string): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Transactions/by-number/{mobilePayReqId}";
         if (mobilePayReqId === undefined || mobilePayReqId === null)
             throw new globalThis.Error("The parameter 'mobilePayReqId' must be defined.");
@@ -518,7 +566,7 @@ export class TransactionsClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "application/json"
+                "Accept": "application/octet-stream"
             }
         };
 
@@ -527,30 +575,29 @@ export class TransactionsClient {
         });
     }
 
-    protected processGetByNumber(response: Response): Promise<TransactionResponseDto> {
+    protected processGetByNumber(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as TransactionResponseDto;
-            return result200;
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            let result404: any = null;
-            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
-            });
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<TransactionResponseDto>(null as any);
+        return Promise.resolve<FileResponse>(null as any);
     }
 
-    updateStatus(id: string, dto: UpdateTransactionStatusDto): Promise<void> {
+    updateStatus(id: string, dto: UpdateTransactionStatusDto): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Transactions/{id}/status";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -564,6 +611,7 @@ export class TransactionsClient {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/octet-stream"
             }
         };
 
@@ -572,31 +620,26 @@ export class TransactionsClient {
         });
     }
 
-    protected processUpdateStatus(response: Response): Promise<void> {
+    protected processUpdateStatus(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            let result404: any = null;
-            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
-            });
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<FileResponse>(null as any);
     }
 }
 
@@ -699,6 +742,11 @@ export interface ProblemDetails {
     [key: string]: any;
 }
 
+export interface SubmitTransactionDto {
+    mobilePayReqId: string;
+    amount: number;
+}
+
 export interface CreateTransactionDto {
     playerId: string;
     mobilePayReqId: string;
@@ -707,18 +755,6 @@ export interface CreateTransactionDto {
 
 export interface UpdateTransactionStatusDto {
     status: string;
-}
-
-export interface AdminTransactionListItemDto {
-    transactionId: string;
-    mobilePayReqId: string;
-    playerId: string;
-    playerFirstName: string;
-    playerLastName: string;
-    playerEmail: string;
-    amount: number;
-    status: string;
-    timestamp: string;
 }
 
 export interface FileResponse {

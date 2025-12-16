@@ -45,3 +45,11 @@ public sealed class AdminTransactionListItemDto
     public string Status { get; set; } = string.Empty;
     public DateTimeOffset Timestamp { get; set; }
 }
+public sealed class SubmitTransactionDto
+{
+    [Required]
+    public string MobilePayReqId { get; set; } = string.Empty;
+
+    // The player doesn't type this manually; UI sends the calculated board price.
+    public decimal Amount { get; set; }
+}
