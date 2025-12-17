@@ -8,12 +8,13 @@ import PlayerDashboard from "@components/dashboard/Dashboard.tsx";
 import PlayPage from "@components/dashboard/pages/Playpage.tsx";
 import MyBoardsPage from "@components/dashboard/pages/MyBoardsPage.tsx";
 import PlayerHistoryPage from "@components/dashboard/pages/PlayerHistoryPage.tsx";
+import PlayerDepositPage from "@components/dashboard/pages/PlayerDepositPage.tsx"
 import AdminDashboard from "@components/dashboard/AdminDashboard.tsx";
 import AdminDashboardPage from "@components/dashboard/pages/AdminDashboardPage.tsx";
 import ManagePlayersPage from "@components/dashboard/pages/ManagePlayersPage.tsx";
 import AdminWinningNumbersPage from "@components/dashboard/pages/AdminWinningNumbersPage.tsx";
 import AdminGameHistoryPage from "@components/dashboard/pages/AdminGameHistoryPage.tsx";
-
+import AdminReviewDepositsPage from "@components/dashboard/pages/AdminReviewDepositsPage.tsx"
 function App() {
     return (
         <>
@@ -37,6 +38,10 @@ function App() {
                                     element: <PlayPage/>
                                 },
                                 {
+                                    path: 'deposit',
+                                    element: <PlayerDepositPage/>
+                                },
+                                {
                                     path: 'boards',
                                     element: <MyBoardsPage/>
                                 },
@@ -53,6 +58,10 @@ function App() {
                                 {
                                     index: true,
                                     element: <AdminDashboardPage/>
+                                },
+                                {
+                                    path: 'review-deposits',
+                                    element: <AdminReviewDepositsPage/>
                                 },
                                 {
                                     path: 'manage-players',

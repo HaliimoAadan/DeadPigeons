@@ -9,6 +9,7 @@ type NavOption = {label: string; to: string} | {label: string; action: () => voi
 
 const navItems: Extract<NavOption, {to: string}>[] = [
     {label: "Play", to: "."},
+    {label: "Deposit", to: "deposit"},
     {label: "My Boards", to: "boards"},
     {label: "History", to: "history"}
 ] as const;

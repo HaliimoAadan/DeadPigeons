@@ -9,6 +9,7 @@ type NavOption = {label: string; to: string} | {label: string; action: () => voi
 
 const navItems: Extract<NavOption, {to: string}>[] = [
     {label: "Dashboard", to: "."},
+    {label: "Review Deposits", to: "review-deposits"},
     {label: "Manage Players", to: "manage-players"},
     {label: "Winning Numbers", to: "winning-numbers"},
     {label: "Game History", to: "game-history"}

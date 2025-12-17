@@ -53,18 +53,17 @@ export default function ManagePlayersPage() {
         }
     };
 
-    const toggleActive = async (player: PlayerResponseDto) => {
-        const nextStatus = !player.isActive;
+    const updateStatus = async (player: PlayerResponseDto, isActive: boolean) => {
 
         try {
-            await playersApi.updateStatus(player.playerId, nextStatus);
+            await playersApi.updateStatus(player.playerId, isActive);
             setPlayers((prev) =>
                 prev.map((existing) => existing.playerId === player.playerId ? {
                     ...existing,
-                    isActive: nextStatus
+                    isActive
                 } : existing)
             );
-            toast.success(`${player.fullName} marked as ${nextStatus ? "active" : "inactive"}.`);
+            toast.success(`${player.fullName} marked as ${isActive ? "active" : "inactive"}.`);
         } catch (error) {
             console.error(error);
             toast.error("Could not update status.");
@@ -82,6 +81,7 @@ export default function ManagePlayersPage() {
                 <div>
                     <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Players</p>
                     <h2 className="text-3xl font-semibold text-slate-900">Manage Players</h2>
+                    <p className="mt-1 max-w-2xl text-sm text-slate-600">Creating a player generates a unique Player ID.</p>
                 </div>
                 <button 
                     form="new-player-form" 
@@ -144,15 +144,17 @@ export default function ManagePlayersPage() {
                     </select>
                 </label>
             </form>
-            
-            <div className="overflow-hidden rounded-3xl bg-white/90 shadow-lg shadow-orange-100">
-                <table className="min-w-full divide-y divide-orange-100 text-left text-sm">
+
+            <div className="overflow-x-auto rounded-3xl bg-white/90 p-4 shadow-lg shadow-orange-100">
+            <table className="min-w-[1120px] w-full table-auto divide-y divide-orange-100 text-left text-sm">
                     <thead className="bg-[#fef7ef] text-xs uppercase tracking-wide text-slate-500">
                     <tr>
-                        <th className="px-6 py-3">Name</th>
-                        <th className="px-6 py-3">Email</th>
-                        <th className="px-6 py-3">Phone</th>
-                        <th className="px-6 py-3">Status</th>
+                        <th className="px-6 py-3" style={{width: "14%"}}>Name </th>
+                        <th className="px-6 py-3" style={{width: "18%"}}>Player ID</th>
+                        <th className="px-6 py-3" style={{width: "18%"}}>Email</th>
+                        <th className="px-6 py-3" style={{width: "14%"}}>Phone</th>
+                        <th className="px-6 py-3 text-center" style={{width: "14%"}}>Status</th>
+                        <th className="px-6 py-3 text-center" style={{width: "28%"}}>Actions</th>
                     </tr>
                     </thead>
                     <tbody className="divide-y divide-orange-50">
@@ -172,21 +174,51 @@ export default function ManagePlayersPage() {
                     )}
                     {!loading && players.map((player) => (
                         <tr key={player.playerId} className="transition hover:bg-[#fff8f0]">
-                            <td className="px-6 py-4 font-medium text-slate-900">{player.fullName}</td>
-                            <td className="px-6 py-4 text-slate-600">{player.email}</td>
-                            <td className="px-6 py-4 text-slate-600">{player.phoneNumber}</td>
-                            <td className="px-6 py-4">
-                                <button
-                                    type="button"
-                                    onClick={() => toggleActive(player)}
-                                    className={`rounded-full px-4 py-1 text-xs font-semibold transition ${
+                            <td className="px-4 py-4 align-middle font-medium text-slate-900">{player.fullName}</td>
+                            <td className="px-4 py-4 align-middle text-slate-600">
+                                <div className="flex items-center gap-2">
+                                    <code className="rounded bg-slate-100 px-2 py-1 text-[11px] text-slate-700">{player.playerId}</code>
+                                    <button
+                                        type="button"
+                                        className="text-xs font-semibold text-[#f7a166] hover:text-[#e2853c]"
+                                        onClick={() => navigator.clipboard?.writeText(player.playerId)}
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
+                            </td>
+                            <td className="px-4 py-4 align-middle text-slate-600">{player.email}</td>
+                            <td className="px-4 py-4 align-middle text-slate-600">{player.phoneNumber}</td>
+                            <td className="px-4 py-4 align-middle text-center">
+                                <span
+                                    className={`inline-flex min-w-[96px] justify-center rounded-full px-4 py-1 text-xs font-semibold ${
                                         player.isActive
                                             ? "bg-emerald-100 text-emerald-700"
                                             : "bg-slate-200 text-slate-500"
                                     }`}
                                 >
                                     {player.isActive ? "Active" : "Inactive"}
-                                </button>
+                               </span>
+                            </td>
+                            <td className="px-4 py-4 align-middle text-center">
+                                <div className="inline-flex flex-wrap justify-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => updateStatus(player, false)}
+                                        disabled={!player.isActive}
+                                        className="min-w-[110px] rounded-full bg-amber-100 px-4 py-2 text-xs font-semibold text-amber-700 shadow-inner disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        Deactivate
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => updateStatus(player, true)}
+                                        disabled={player.isActive}
+                                        className="min-w-[110px] rounded-full bg-emerald-100 px-4 py-2 text-xs font-semibold text-emerald-700 shadow-inner disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        Activate
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     ))}
