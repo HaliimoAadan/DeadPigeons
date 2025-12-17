@@ -236,4 +236,71 @@ public sealed class TransactionsController : ControllerBase
         playerId = Guid.Empty;
         return false;
     }
+    
+    // GET /api/Transactions/me?status=Pending
+// Returns the current player's own transactions.
+    [HttpGet("me")]
+    [ProducesResponseType(typeof(List<TransactionResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetMyTransactions(
+        [FromHeader(Name = "X-Player-Id")] Guid playerId,
+        [FromQuery] string? status,
+        CancellationToken ct)
+    {
+        // TEMPORARY (dev only):
+        // Player identity is taken from X-Player-Id header.
+        // Replace with JWT claim after authentication is implemented:
+        // var playerId = Guid.Parse(User.FindFirst("playerId")!.Value);
+
+        if (playerId == Guid.Empty)
+            return BadRequest(new { message = "Missing or invalid X-Player-Id header." });
+
+        var q = _db.Transactions
+            .AsNoTracking()
+            .Where(t => t.PlayerId == playerId);
+
+        if (!string.IsNullOrWhiteSpace(status))
+            q = q.Where(t => t.Status == status.Trim());
+
+        var result = await q
+            .OrderByDescending(t => t.Timestamp)
+            .Select(t => new TransactionResponseDto
+            {
+                TransactionId = t.TransactionId,
+                PlayerId = t.PlayerId,
+                MobilePayReqId = t.MobilepayReqId,
+                Amount = t.Amount,
+                Status = t.Status,
+                Timestamp = t.Timestamp
+            })
+            .ToListAsync(ct);
+
+        return Ok(result);
+    }
+
+    // GET /api/Transactions/me/balance
+// Returns the current player's balance (sum of approved transactions).
+    [HttpGet("me/balance")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetMyBalance(
+        [FromHeader(Name = "X-Player-Id")] Guid playerId,
+        CancellationToken ct)
+    {
+        // TEMPORARY (dev only):
+        // Player identity is taken from X-Player-Id header.
+        // Will be replaced with JWT claims after authentication:
+        // var playerId = Guid.Parse(User.FindFirst("playerId")!.Value);
+
+        if (playerId == Guid.Empty)
+            return BadRequest(new { message = "Missing or invalid X-Player-Id header." });
+
+        var balance = await _db.Transactions
+            .AsNoTracking()
+            .Where(t => t.PlayerId == playerId && t.Status == "Approved")
+            .SumAsync(t => t.Amount, ct);
+
+        return Ok(new { balance });
+    }
+
 }
