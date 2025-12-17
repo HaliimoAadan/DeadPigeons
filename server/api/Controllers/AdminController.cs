@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyDbContext = efscaffold.MyDbContext;
 using api.Models.Requests;
+using api.Models.Response;
 using efscaffold.Entities;
 using PasswordHasher = api.Etc.PasswordHasher;
 
@@ -22,14 +23,33 @@ public class AdminController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var admins = await _dbContext.Admins.ToListAsync();
+        var admins = await _dbContext.Admins
+            .Select(a => new AdminResponseDto
+            {
+                AdminId = a.AdminId,
+                Email = a.Email,
+                FirstName = a.FirstName,
+                LastName = a.LastName
+            })
+            .ToListAsync();
+
         return Ok(admins);
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id)
     {
-        var admin = await _dbContext.Admins.FindAsync(id);
+        var admin = await _dbContext.Admins
+            .Where(a => a.AdminId == id)
+            .Select(a => new AdminResponseDto
+            {
+                AdminId = a.AdminId,
+                Email = a.Email,
+                FirstName = a.FirstName,
+                LastName = a.LastName
+            })
+            .FirstOrDefaultAsync();
+
         if (admin == null) return NotFound();
         return Ok(admin);
     }
@@ -37,17 +57,32 @@ public class AdminController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Admin admin)
     {
-        if (admin.AdminId == Guid.Empty)
-            admin.AdminId = Guid.NewGuid();
+        if (string.IsNullOrWhiteSpace(admin.Email))
+            return BadRequest("Email is required");
+
+        if (string.IsNullOrWhiteSpace(admin.PasswordHash))
+            return BadRequest("PasswordHash is required");
+
+        if (await _dbContext.Admins.AnyAsync(a => a.Email == admin.Email))
+            return BadRequest("Email already exists");
+
+        admin.AdminId = Guid.NewGuid();
 
         _dbContext.Admins.Add(admin);
         await _dbContext.SaveChangesAsync();
+
         return CreatedAtAction(nameof(Get), new { id = admin.AdminId }, admin);
     }
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] Admin updatedAdmin)
     {
+        if (string.IsNullOrWhiteSpace(updatedAdmin.Email))
+            return BadRequest("Email cannot be empty");
+        
+        if (await _dbContext.Admins.AnyAsync(a => a.Email == updatedAdmin.Email && a.AdminId != id))
+            return BadRequest("Email already in use");
+        
         // Token validation
         var authHeader = Request.Headers["Authorization"].FirstOrDefault();
         if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
@@ -97,6 +132,9 @@ public class AdminController : ControllerBase
     [HttpPost("create-player")]
     public async Task<IActionResult> CreatePlayer([FromBody] RegisterPlayerRequestDto dto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
         // Token validation
         var authHeader = Request.Headers["Authorization"].FirstOrDefault();
         if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
@@ -112,6 +150,12 @@ public class AdminController : ControllerBase
         // Check email
         if (await _dbContext.Players.AnyAsync(p => p.Email == dto.Email))
             return BadRequest("Email already in use");
+        
+        if (dto.Password.Length < 8)
+            return BadRequest("Password must be at least 8 characters long");
+        
+        if (!dto.Email.Contains("@"))
+            return BadRequest("Invalid email format");
 
         var player = new Player
         {

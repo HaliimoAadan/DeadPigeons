@@ -1,4 +1,5 @@
 using api.Helpers;
+using api.Models.Response;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyDbContext = efscaffold.MyDbContext;
@@ -20,7 +21,17 @@ public class PlayerController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var players = await _db.Players.ToListAsync();
+        var players = await _db.Players
+            .Select(p => new PlayerResponseDto
+            {
+                PlayerId = p.PlayerId,
+                Email = p.Email,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                IsActive = p.IsActive
+            })
+            .ToListAsync();
+
         return Ok(players);
     }
 
@@ -35,8 +46,20 @@ public class PlayerController : ControllerBase
         var playerId = JwtValidator.ValidateToken(token, secret);
         if (playerId == null || playerId != id.ToString()) return Unauthorized("Invalid token");
 
-        var player = await _db.Players.FindAsync(id);
-        if (player == null) return NotFound();
+        var player = await _db.Players
+            .Where(p => p.PlayerId == id)
+            .Select(p => new PlayerResponseDto
+            {
+                PlayerId = p.PlayerId,
+                Email = p.Email,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                IsActive = p.IsActive
+            })
+            .FirstOrDefaultAsync();
+
+        if (player == null)
+            return NotFound();
 
         return Ok(player);
     }

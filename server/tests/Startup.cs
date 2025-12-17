@@ -1,5 +1,5 @@
 using api;
-using Infrastructure.Postgres.Scaffolding;
+using efscaffold;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
