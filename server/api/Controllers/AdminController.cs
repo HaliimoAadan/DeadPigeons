@@ -173,4 +173,39 @@ public class AdminController : ControllerBase
 
         return Ok(new { player.PlayerId, player.Email });
     }
+    
+    [HttpPost("{gameId:guid}/publish-winning-numbers")]
+    public async Task<IActionResult> PublishWinningNumbers(Guid gameId, [FromBody] WinningNumbersDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        // Token validation (admin only)
+        var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+            return Unauthorized("No token provided");
+
+        var token = authHeader.Substring("Bearer ".Length).Trim();
+        var secret = Environment.GetEnvironmentVariable("JWT_SECRET");
+        if (string.IsNullOrWhiteSpace(secret)) return StatusCode(500, "JWT_SECRET missing");
+
+        var adminId = JwtValidator.ValidateToken(token, secret);
+        if (adminId == null) return Unauthorized("Invalid token");
+
+        // Additional safety check
+        if (dto.Numbers.Distinct().Count() != 3 || dto.Numbers.Any(n => n < 1 || n > 16))
+            return BadRequest("You must choose exactly 3 distinct numbers between 1 and 16.");
+
+        var game = await _dbContext.Games.FindAsync(gameId);
+        if (game == null) return NotFound("Game not found");
+        if (game.DrawDate != null) return BadRequest("Winning numbers already published for this game.");
+
+        game.WinningNumbers = dto.Numbers.OrderBy(n => n).ToList();
+        game.DrawDate = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(new { game.GameId, game.WinningNumbers });
+    }
+
 }
