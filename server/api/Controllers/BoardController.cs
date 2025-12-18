@@ -2,7 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyDbContext = efscaffold.MyDbContext;
 using api.Models;
-using efscaffold.Entities; // Make sure your Board class is here
+using efscaffold.Entities; 
+using api.Models.Requests;
+using api.Services;
+
 
 namespace api.Controllers;
 
@@ -83,4 +86,48 @@ public class BoardController : ControllerBase
         await _db.SaveChangesAsync();
         return NoContent();
     }
+    
+    /// <summary>
+    /// Purchases a board using wallet rules (derived balance).
+    /// This endpoint is the one the frontend should use for players.
+    /// </summary>
+    [HttpPost("purchase")]
+    public async Task<IActionResult> Purchase(
+        [FromHeader(Name = "X-Player-Id")] Guid playerId,
+        [FromBody] PurchaseBoardRequestDto dto,
+        [FromServices] IBoardService boardService,
+        CancellationToken ct)
+    {
+        if (playerId == Guid.Empty)
+            return BadRequest(new { message = "Missing or invalid X-Player-Id header." });
+
+        if (dto is null)
+            return BadRequest(new { message = "Request body is required." });
+
+        try
+        {
+            var board = await boardService.PurchaseAsync(
+                playerId: playerId,
+                gameId: dto.GameId,
+                chosenNumbers: dto.ChosenNumbers,
+                isRepeating: dto.IsRepeating,
+                repeatUntilGameId: dto.RepeatUntilGameId,
+                ct: ct
+            );
+
+            return CreatedAtAction(nameof(Get), new { id = board.BoardId }, board);
+        }
+        catch (ArgumentException ex)
+        {
+            // Validation errors (numbers, input, etc.)
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Business rule violations (insufficient balance, invalid state)
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+
 }

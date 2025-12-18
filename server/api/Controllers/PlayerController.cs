@@ -1,14 +1,15 @@
 using api.Helpers;
-using api.Models.Response;
+using api.Models;
+//using api.Models.Response;
+using efscaffold;
+using efscaffold.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyDbContext = efscaffold.MyDbContext;
-using efscaffold.Entities;
 
 namespace api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/player")] // IMPORTANT: fara [controller]
 public class PlayerController : ControllerBase
 {
     private readonly MyDbContext _db;
@@ -18,62 +19,86 @@ public class PlayerController : ControllerBase
         _db = db;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    // -------------------------
+    // Helper: token validation
+    // -------------------------
+    private IActionResult? ValidateToken(Guid targetPlayerId)
     {
-        var players = await _db.Players
+        var token = Request.Headers["X-Auth-Token"].FirstOrDefault();
+        if (token == null) return Unauthorized("No token");
+
+        var secret = Environment.GetEnvironmentVariable("JWT_SECRET");
+        if (string.IsNullOrWhiteSpace(secret))
+            return StatusCode(500, "JWT_SECRET missing");
+
+        var playerId = JwtValidator.ValidateToken(token, secret);
+        if (playerId == null || playerId != targetPlayerId.ToString())
+            return Unauthorized("Invalid token");
+
+        return null;
+    }
+
+    // -------------------------
+    // GET /api/player?onlyActive=true
+    // -------------------------
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<PlayerResponseDto>>> GetAll(
+        [FromQuery] bool? onlyActive)
+    {
+        var query = _db.Players.AsQueryable();
+
+        if (onlyActive == true)
+            query = query.Where(p => p.IsActive);
+
+        var players = await query
             .Select(p => new PlayerResponseDto
             {
                 PlayerId = p.PlayerId,
+                FullName = ((p.FirstName ?? "") + " " + (p.LastName ?? "")).Trim(),
                 Email = p.Email,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
+                PhoneNumber = p.PhoneNumber,
                 IsActive = p.IsActive
             })
             .ToListAsync();
 
-        return Ok(players);
+        return Ok(players); // ARRAY -> map() ok
     }
 
+    // -------------------------
+    // GET /api/player/{id}
+    // -------------------------
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id)
     {
-        // Token validation
-        var token = Request.Headers["X-Auth-Token"].FirstOrDefault();
-        if (token == null) return Unauthorized("No token");
-        var secret = Environment.GetEnvironmentVariable("JWT_SECRET");
-        if (string.IsNullOrWhiteSpace(secret)) return StatusCode(500, "JWT_SECRET missing");
-        var playerId = JwtValidator.ValidateToken(token, secret);
-        if (playerId == null || playerId != id.ToString()) return Unauthorized("Invalid token");
+        var auth = ValidateToken(id);
+        if (auth != null) return auth;
 
         var player = await _db.Players
             .Where(p => p.PlayerId == id)
             .Select(p => new PlayerResponseDto
             {
                 PlayerId = p.PlayerId,
+                FullName = ((p.FirstName ?? "") + " " + (p.LastName ?? "")).Trim(),
                 Email = p.Email,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
+                PhoneNumber = p.PhoneNumber,
                 IsActive = p.IsActive
             })
             .FirstOrDefaultAsync();
 
-        if (player == null)
-            return NotFound();
-
-        return Ok(player);
+        return player == null ? NotFound() : Ok(player);
     }
+    
 
+    // -------------------------
+    // PUT /api/player/{id}
+    // -------------------------
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] Player updatedPlayer)
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] Player updatedPlayer)
     {
-        // Token validation
-        var token = Request.Headers["X-Auth-Token"].FirstOrDefault();
-        if (token == null) return Unauthorized("No token");
-        var secret = Environment.GetEnvironmentVariable("JWT_SECRET");
-        if (string.IsNullOrWhiteSpace(secret)) return StatusCode(500, "JWT_SECRET missing");
-        var playerId = JwtValidator.ValidateToken(token, secret);
-        if (playerId == null || playerId != id.ToString()) return Unauthorized("Invalid token");
+        var auth = ValidateToken(id);
+        if (auth != null) return auth;
 
         var player = await _db.Players.FindAsync(id);
         if (player == null) return NotFound();
@@ -89,22 +114,37 @@ public class PlayerController : ControllerBase
         return NoContent();
     }
 
+    // -------------------------
+    // DELETE /api/player/{id}
+    // -------------------------
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        // Token validation
-        var token = Request.Headers["X-Auth-Token"].FirstOrDefault();
-        if (token == null) return Unauthorized("No token");
-        var secret = Environment.GetEnvironmentVariable("JWT_SECRET");
-        if (string.IsNullOrWhiteSpace(secret)) return StatusCode(500, "JWT_SECRET missing");
-        var playerId = JwtValidator.ValidateToken(token, secret);
-        if (playerId == null || playerId != id.ToString()) return Unauthorized("Invalid token");
+        var auth = ValidateToken(id);
+        if (auth != null) return auth;
 
         var player = await _db.Players.FindAsync(id);
         if (player == null) return NotFound();
 
         _db.Players.Remove(player);
         await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // -------------------------
+    // PATCH /api/player/{id}/status
+    // -------------------------
+    [HttpPatch("{id:guid}/status")]
+    public async Task<IActionResult> UpdateStatus(
+        Guid id,
+        [FromQuery] bool isActive)
+    {
+        var player = await _db.Players.FindAsync(id);
+        if (player == null) return NotFound();
+
+        player.IsActive = isActive;
+        await _db.SaveChangesAsync();
+
         return NoContent();
     }
 }
