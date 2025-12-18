@@ -1,5 +1,5 @@
 using api.Models;
-using dataccess;
+using efscaffold;
 using Microsoft.EntityFrameworkCore;
 using NJsonSchema.CodeGeneration.TypeScript;
 using NSwag;
@@ -138,28 +138,16 @@ public static class DiExtensions
 
     public static void AddMyDbContext(this IServiceCollection services)
     {
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        if (environment != "Production")
-        {
-            var postgreSqlContainer = new PostgreSqlBuilder()
-                .WithDatabase("postgres")
-                .WithUsername("postgres")
-                .WithPassword("postgres")
-                .WithPortBinding("5432", true)
-                .WithExposedPort("5432").Build();
-            postgreSqlContainer.StartAsync().GetAwaiter().GetResult();
-            var connectionString = postgreSqlContainer.GetConnectionString();
-            Console.WriteLine("Connecting to DB: " + connectionString);
-            services.AddDbContext<MyDbContext>((services, options) => { options.UseNpgsql(connectionString); });
-        }
-        else
-        {
-            services.AddDbContext<MyDbContext>(
-                (services, options) => { options.UseNpgsql(services.GetRequiredService<AppOptions>().Db); },
-                ServiceLifetime.Transient);
-        }
-    }
+        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+        // if (string.IsNullOrWhiteSpace(connectionString))
+        //     throw new Exception("DATABASE_URL not set in environment variables.");
 
+        services.AddDbContext<MyDbContext>(
+            (serviceProvider, options) => { options.UseNpgsql(connectionString); },
+            ServiceLifetime.Transient
+        );
+    }
+    
     public static void InjectAppOptions(this IServiceCollection services)
     {
         services.AddSingleton<AppOptions>(provider =>

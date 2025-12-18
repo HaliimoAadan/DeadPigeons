@@ -1,131 +1,76 @@
-using System.Security.Cryptography;
-using System.Text;
+/*using System;
+using System.Linq;
 using Bogus;
-using dataccess;
+using Infrastructure.Postgres.Scaffolding;
+using efscaffold.Entities;
+using System.Threading.Tasks;
 
 namespace api.Etc;
 
-public class SieveTestSeeder(MyDbContext ctx, TimeProvider timeProvider) : ISeeder
+public class SieveTestSeeder : ISeeder
 {
+    private readonly MyDbContext _ctx;
+    private readonly TimeProvider _timeProvider;
+
+    public SieveTestSeeder(MyDbContext ctx, TimeProvider timeProvider)
+    {
+        _ctx = ctx;
+        _timeProvider = timeProvider;
+    }
+
     public async Task Seed()
     {
-        await ctx.Database.EnsureCreatedAsync();
+        await _ctx.Database.EnsureCreatedAsync();
+
         // Clear existing data
-        ctx.Books.RemoveRange(ctx.Books);
-        ctx.Authors.RemoveRange(ctx.Authors);
-        ctx.Genres.RemoveRange(ctx.Genres);
-        ctx.Libraryusers.RemoveRange(ctx.Libraryusers);
-        await ctx.SaveChangesAsync();
+        _ctx.Winningboards.RemoveRange(_ctx.Winningboards);
+        _ctx.Transactions.RemoveRange(_ctx.Transactions);
+        _ctx.Boards.RemoveRange(_ctx.Boards);
+        _ctx.Games.RemoveRange(_ctx.Games);
+        _ctx.Players.RemoveRange(_ctx.Players);
+        await _ctx.SaveChangesAsync();
 
-        var salt = Guid.NewGuid().ToString();
-        var hash = SHA512.HashData(
-            Encoding.UTF8.GetBytes("test@user.dk" + salt));
-        var user = new Libraryuser
-        {
-            Email = "test@user.dk",
-            Createdat = timeProvider.GetUtcNow().DateTime.ToUniversalTime(),
-            Id = "test@user.dk",
-            Salt = salt,
-            Passwordhash = hash.Aggregate("", (current, b) => current + b.ToString("x2")),
-            Role = "User"
-        };
-        ctx.Libraryusers.Add(user);
-        await ctx.SaveChangesAsync();
-
-        // Set a deterministic seed for reproducibility
         Randomizer.Seed = new Random(12345);
 
-        // Create genres (50 genres with varied, realistic names)
-        var genreFaker = new Faker<Genre>()
-            .RuleFor(g => g.Id, f => Guid.NewGuid().ToString())
-            .RuleFor(g => g.Name, f => f.PickRandom(
-                "Science Fiction", "Fantasy", "Mystery", "Thriller", "Romance",
-                "Horror", "Historical Fiction", "Biography", "Autobiography", "Self-Help",
-                "Business", "Philosophy", "Poetry", "Drama", "Adventure",
-                "Crime", "Western", "Dystopian", "Paranormal", "Contemporary",
-                "Classic", "Young Adult", "Children's Literature", "Graphic Novel", "Memoir",
-                "True Crime", "Travel", "Cookbook", "Art & Photography", "Science",
-                "History", "Politics", "Religion & Spirituality", "Psychology", "Sociology",
-                "Economics", "Technology", "Health & Fitness", "Parenting", "Education",
-                "Literary Fiction", "Urban Fantasy", "Space Opera", "Cyberpunk", "Steampunk",
-                "Military Fiction", "Legal Thriller", "Medical Thriller", "Spy Fiction", "Satire"
-            ))
-            .RuleFor(g => g.Createdat, f => f.Date.Past(5).ToUniversalTime());
+        // ==================== Players ====================
+        var playerFaker = new Faker<Player>()
+            .RuleFor(p => p.PlayerId, f => Guid.NewGuid())
+            .RuleFor(p => p.FirstName, f => f.Name.FirstName())
+            .RuleFor(p => p.LastName, f => f.Name.LastName())
+            .RuleFor(p => p.Email, f => f.Internet.Email())
+            .RuleFor(p => p.PhoneNumber, f => f.Phone.PhoneNumber())
+            .RuleFor(p => p.PasswordHash, f => f.Random.Hash())
+            .RuleFor(p => p.IsActive, f => f.Random.Bool());
 
-        var genres = genreFaker.Generate(50);
-        ctx.Genres.AddRange(genres);
-        await ctx.SaveChangesAsync();
+        var players = playerFaker.Generate(50);
+        _ctx.Players.AddRange(players);
+        await _ctx.SaveChangesAsync();
+        
+        // ==================== Transactions ====================
+        var transactionFaker = new Faker<Transaction>()
+            .RuleFor(t => t.TransactionId, f => Guid.NewGuid())
+            .RuleFor(t => t.PlayerId, f => f.PickRandom(players).PlayerId)
+            .RuleFor(t => t.Amount, f => f.Random.Decimal(20, 500))
+            .RuleFor(t => t.MobilepayReqId, f => f.Random.AlphaNumeric(10))
+            .RuleFor(t => t.Status, f => f.PickRandom("Pending", "Approved"))
+            .RuleFor(t => t.Timestamp, f => _timeProvider.GetUtcNow().DateTime);
 
-        // Create authors (500 authors with realistic names)
-        var authorFaker = new Faker<Author>()
-            .RuleFor(a => a.Id, f => Guid.NewGuid().ToString())
-            .RuleFor(a => a.Name, f => f.Name.FullName())
-            .RuleFor(a => a.Createdat, f => f.Date.Past(10).ToUniversalTime());
+        var transactions = transactionFaker.Generate(50);
+        _ctx.Transactions.AddRange(transactions);
+        await _ctx.SaveChangesAsync();
 
-        var authors = authorFaker.Generate(500);
-        ctx.Authors.AddRange(authors);
-        await ctx.SaveChangesAsync();
+        // ==================== Winningboards ====================
+        var winningFaker = new Faker<Winningboard>()
+            .RuleFor(w => w.WinningboardId, f => Guid.NewGuid())
+            //.RuleFor(w => w.BoardId, f => f.PickRandom(boards).BoardId)
+           // .RuleFor(w => w.GameId, f => f.PickRandom(games).GameId)
+            .RuleFor(w => w.WinningNumbersMatched, f => f.Random.Int(0, 3))
+            .RuleFor(w => w.Timestamp, f => _timeProvider.GetUtcNow().DateTime);
 
-        // Create books (5000 books with highly varied, realistic titles)
-        // This ensures obscure queries will likely return results
-        var bookFaker = new Faker<Book>()
-            .RuleFor(b => b.Id, f => Guid.NewGuid().ToString())
-            .RuleFor(b => b.Title, f => GenerateRealisticBookTitle(f))
-            .RuleFor(b => b.Pages, f => f.Random.Number(50, 1200))
-            .RuleFor(b => b.Createdat, f => f.Date.Past(20).ToUniversalTime())
-            .RuleFor(b => b.Genreid, f => f.PickRandom(genres).Id);
+        var winningboards = winningFaker.Generate(30);
+        _ctx.Winningboards.AddRange(winningboards);
+        await _ctx.SaveChangesAsync();
 
-        var books = bookFaker.Generate(5000);
-        ctx.Books.AddRange(books);
-        await ctx.SaveChangesAsync();
-
-        // Create author-book relationships (many-to-many)
-        // Each book will have 1-4 authors randomly assigned
-        var random = new Random(12345);
-        foreach (var book in books)
-        {
-            var numAuthors = random.Next(1, 5); // 1 to 4 authors
-            var selectedAuthors = authors.OrderBy(x => random.Next()).Take(numAuthors);
-
-            foreach (var author in selectedAuthors) book.Authors.Add(author);
-        }
-
-        await ctx.SaveChangesAsync();
-
-        // Stop tracking
-        ctx.ChangeTracker.Clear();
+        _ctx.ChangeTracker.Clear();
     }
-
-    private static string GenerateRealisticBookTitle(Faker f)
-    {
-        // Generate diverse, realistic book titles with varied structures
-        var titleType = f.Random.Number(0, 9);
-
-        return titleType switch
-        {
-            0 => $"The {Capitalize(f.Random.Word())} of {f.Name.FirstName()}", // "The Mystery of Alice"
-            1 => CapitalizeWords(f.Random.Words()), // Two random words
-            2 => $"{f.Commerce.ProductAdjective()} {Capitalize(f.Random.Word())}", // "Incredible Journey"
-            3 => $"The {f.Commerce.ProductAdjective()} {Capitalize(f.Random.Word())}", // "The Silent Night"
-            4 => $"{f.Name.FirstName()}'s {Capitalize(f.Random.Word())}", // "Sarah's Quest"
-            5 => $"{Capitalize(f.Random.Word())} in {f.Address.City()}", // "Adventure in Tokyo"
-            6 => $"The {Capitalize(f.Random.Word())} and the {Capitalize(f.Random.Word())}", // "The Lion and the Mouse"
-            7 => CapitalizeWords(f.Random.Words(3)), // Three random words
-            8 => $"A {Capitalize(f.Random.Word())} to {Capitalize(f.Random.Word())}", // "A Journey to Remember"
-            _ => $"{Capitalize(f.Hacker.Adjective())} {Capitalize(f.Random.Word())}" // "Digital Fortress"
-        };
-    }
-
-    private static string Capitalize(string word)
-    {
-        if (string.IsNullOrEmpty(word)) return word;
-        return char.ToUpper(word[0]) + word.Substring(1).ToLower();
-    }
-
-    private static string CapitalizeWords(string text)
-    {
-        if (string.IsNullOrEmpty(text)) return text;
-        var words = text.Split(' ');
-        return string.Join(" ", words.Select(Capitalize));
-    }
-}
+}*/
