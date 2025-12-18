@@ -1,4 +1,4 @@
-using api.Models;
+/*using api.Models;
 using efscaffold;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -89,3 +89,4 @@ public class PlayersController : ControllerBase
         return NoContent();
     }
 }
+*/
