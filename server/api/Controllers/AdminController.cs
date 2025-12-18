@@ -4,8 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using MyDbContext = efscaffold.MyDbContext;
 using api.Models.Requests;
 using api.Models.Response;
+using api.Models;
 using efscaffold.Entities;
 using PasswordHasher = api.Etc.PasswordHasher;
+
+// IMPORTANT: resolve conflict (FullName/PhoneNumber)
+using PlayerResponseDto = api.Models.PlayerResponseDto;
 
 namespace api.Controllers;
 
@@ -130,12 +134,12 @@ public class AdminController : ControllerBase
     }
 
     [HttpPost("create-player")]
-    public async Task<IActionResult> CreatePlayer([FromBody] RegisterPlayerRequestDto dto)
+    public async Task<ActionResult<PlayerResponseDto>> CreatePlayer([FromBody] RegisterPlayerRequestDto dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-        
-        // Token validation
+
+        // Token validation (admin only) - keep as you already do
         var authHeader = Request.Headers["Authorization"].FirstOrDefault();
         if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
             return Unauthorized("No token provided");
@@ -147,23 +151,23 @@ public class AdminController : ControllerBase
         var adminId = JwtValidator.ValidateToken(token, secret);
         if (adminId == null) return Unauthorized("Invalid token");
 
-        // Check email
+        // Validation
         if (await _dbContext.Players.AnyAsync(p => p.Email == dto.Email))
             return BadRequest("Email already in use");
-        
+
         if (dto.Password.Length < 8)
             return BadRequest("Password must be at least 8 characters long");
-        
+
         if (!dto.Email.Contains("@"))
             return BadRequest("Invalid email format");
 
         var player = new Player
         {
             PlayerId = Guid.NewGuid(),
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            Email = dto.Email,
-            PhoneNumber = dto.PhoneNumber,
+            FirstName = dto.FirstName?.Trim(),
+            LastName = dto.LastName?.Trim(),
+            Email = dto.Email.Trim(),
+            PhoneNumber = dto.PhoneNumber?.Trim(),
             PasswordHash = PasswordHasher.Hash(dto.Password),
             IsActive = true
         };
@@ -171,8 +175,16 @@ public class AdminController : ControllerBase
         _dbContext.Players.Add(player);
         await _dbContext.SaveChangesAsync();
 
-        return Ok(new { player.PlayerId, player.Email });
+        return Ok(new PlayerResponseDto
+        {
+            PlayerId = player.PlayerId,
+            FullName = ((player.FirstName ?? "") + " " + (player.LastName ?? "")).Trim(),
+            Email = player.Email,
+            PhoneNumber = player.PhoneNumber,
+            IsActive = player.IsActive
+        });
     }
+
     
     [HttpPost("{gameId:guid}/publish-winning-numbers")]
     public async Task<IActionResult> PublishWinningNumbers(Guid gameId, [FromBody] WinningNumbersDto dto)
