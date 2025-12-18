@@ -1,1 +1,0 @@
-dotnet tool install -g dotnet-ef && dotnet ef dbcontext scaffold " Host=127.0.0.1;Port=5432;Database=postgres;Username=postgres;Password=postgres" Npgsql.EntityFrameworkCore.PostgreSQL   --context MyDbContext     --no-onconfiguring        --schema library   --force

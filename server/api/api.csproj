@@ -6,34 +6,34 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
-
     <ItemGroup>
         <PackageReference Include="Bogus" Version="*" />
         <PackageReference Include="EFCore.NamingConventions" Version="9.0.0" />
         <PackageReference Include="JWT" Version="11.0.0" />
+        
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-          <PrivateAssets>all</PrivateAssets>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.7">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.7" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-          <PrivateAssets>all</PrivateAssets>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.7">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.*" />
-        <PackageReference Include="NSwag.AspNetCore" Version="*" />
+
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+        
+        <PackageReference Include="NSwag.AspNetCore" Version="14.6.3" />
+        <PackageReference Include="NSwag.CodeGeneration.TypeScript" Version="14.6.3" />
+        <PackageReference Include="NSwag.Generation.AspNetCore" Version="14.6.3" />
+        
         <PackageReference Include="Sieve.Query.Builder" Version="1.1.1" />
         <PackageReference Include="Sieve" Version="2.5.5" />
-        <ProjectReference Include="..\dataccess\dataccess.csproj" />
         <PackageReference Include="Testcontainers.PostgreSql" Version="4.7.0" />
-        <PackageReference Include="NSwag.CodeGeneration.TypeScript" Version="*" />
         <PackageReference Include="Scalar.AspNetCore" Version="2.10.3" />
     </ItemGroup>
 
-
     <ItemGroup>
-      <ProjectReference Include="..\efscaffold\efscaffold.csproj" />
+        <ProjectReference Include="..\efscaffold\efscaffold.csproj" />
     </ItemGroup>
-
 </Project>

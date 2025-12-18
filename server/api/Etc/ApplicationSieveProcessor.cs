@@ -1,4 +1,4 @@
-using dataccess;
+/*using efscaffold.Entities;
 using Microsoft.Extensions.Options;
 using Sieve.Models;
 using Sieve.Services;
@@ -6,130 +6,84 @@ using Sieve.Services;
 namespace api.Etc;
 
 /// <summary>
-///     Custom Sieve processor with fluent API configuration for entities
+/// Custom Sieve processor for Dead Pigeons game entities.
+/// All filterable and sortable properties use SieveConstants to avoid magic strings.
 /// </summary>
 public class ApplicationSieveProcessor : SieveProcessor
 {
-    public ApplicationSieveProcessor(IOptions<SieveOptions> options) : base(options)
-    {
-    }
+    public ApplicationSieveProcessor(IOptions<SieveOptions> options) : base(options) { }
 
     protected override SievePropertyMapper MapProperties(SievePropertyMapper mapper)
     {
-        // ========== AUTHOR PROPERTIES ==========
+        // ================= PLAYER PROPERTIES =================
+        mapper.Property<Player>(p => p.PlayerId)
+            .CanFilter().CanSort().HasName(SieveConstants.PlayerId);
+        mapper.Property<Player>(p => p.FirstName)
+            .CanFilter().CanSort().HasName(SieveConstants.PlayerFirstName);
+        mapper.Property<Player>(p => p.LastName)
+            .CanFilter().CanSort().HasName(SieveConstants.PlayerLastName);
+        mapper.Property<Player>(p => p.Email)
+            .CanFilter().CanSort().HasName(SieveConstants.PlayerEmail);
+        mapper.Property<Player>(p => p.PhoneNumber)
+            .CanFilter().CanSort().HasName(SieveConstants.PlayerPhoneNumber);
+        mapper.Property<Player>(p => p.IsActive)
+            .CanFilter().CanSort().HasName(SieveConstants.PlayerIsActive);
 
-        // Basic properties
-        mapper.Property<Author>(a => a.Id)
-            .CanFilter()
-            .CanSort();
+        // ================= BOARD PROPERTIES =================
+        mapper.Property<Board>(b => b.BoardId)
+            .CanFilter().CanSort().HasName(SieveConstants.BoardId);
+        mapper.Property<Board>(b => b.PlayerId)
+            .CanFilter().CanSort().HasName(SieveConstants.BoardPlayerId);
+        mapper.Property<Board>(b => b.GameId)
+            .CanFilter().CanSort().HasName(SieveConstants.BoardGameId);
+        mapper.Property<Board>(b => b.ChosenNumbers)
+            .CanFilter().HasName(SieveConstants.BoardChosenNumbers);
+        mapper.Property<Board>(b => b.Price)
+            .CanFilter().CanSort().HasName(SieveConstants.BoardPrice);
+        mapper.Property<Board>(b => b.IsRepeating)
+            .CanFilter().CanSort().HasName(SieveConstants.BoardIsRepeating);
+        mapper.Property<Board>(b => b.RepeatUntilGameId)
+            .CanFilter().CanSort().HasName(SieveConstants.BoardRepeatUntilGameId);
+        mapper.Property<Board>(b => b.Timestamp)
+            .CanFilter().CanSort().HasName(SieveConstants.BoardTimestamp);
 
-        mapper.Property<Author>(a => a.Name)
-            .CanFilter()
-            .CanSort();
+        // ================= GAME PROPERTIES =================
+        mapper.Property<Game>(g => g.GameId)
+            .CanFilter().CanSort().HasName(SieveConstants.GameId);
+        mapper.Property<Game>(g => g.DrawDate)
+            .CanFilter().CanSort().HasName(SieveConstants.GameDrawDate);
+        mapper.Property<Game>(g => g.ExpirationDate)
+            .CanFilter().CanSort().HasName(SieveConstants.GameExpirationDate);
+        mapper.Property<Game>(g => g.WinningNumbers)
+            .CanFilter().HasName(SieveConstants.GameWinningNumbers);
 
-        mapper.Property<Author>(a => a.Createdat)
-            .CanFilter()
-            .CanSort();
+        // ================= TRANSACTION PROPERTIES =================
+        mapper.Property<Transaction>(t => t.TransactionId)
+            .CanFilter().CanSort().HasName(SieveConstants.TransactionId);
+        mapper.Property<Transaction>(t => t.PlayerId)
+            .CanFilter().CanSort().HasName(SieveConstants.TransactionPlayerId);
+        mapper.Property<Transaction>(t => t.Amount)
+            .CanFilter().CanSort().HasName(SieveConstants.TransactionAmount);
+        mapper.Property<Transaction>(t => t.MobilepayReqId)
+            .CanFilter().CanSort().HasName(SieveConstants.TransactionMobilepayReqId);
+        mapper.Property<Transaction>(t => t.Status)
+            .CanFilter().CanSort().HasName(SieveConstants.TransactionStatus);
+        mapper.Property<Transaction>(t => t.Timestamp)
+            .CanFilter().CanSort().HasName(SieveConstants.TransactionTimestamp);
 
-        // Date part extraction - useful for filtering/sorting by year, month, etc.
-        mapper.Property<Author>(a => a.Createdat.Year)
-            .CanFilter()
-            .CanSort()
-            .HasName("CreatedYear");
-
-        mapper.Property<Author>(a => a.Createdat.Month)
-            .CanFilter()
-            .CanSort()
-            .HasName("CreatedMonth");
-
-        mapper.Property<Author>(a => a.Createdat.Date)
-            .CanFilter()
-            .CanSort()
-            .HasName("CreatedDate"); // Date without time component
-
-        // ========== BOOK PROPERTIES ==========
-
-        // Basic properties
-        mapper.Property<Book>(b => b.Id)
-            .CanFilter()
-            .CanSort();
-
-        mapper.Property<Book>(b => b.Title)
-            .CanFilter()
-            .CanSort();
-
-        mapper.Property<Book>(b => b.Pages)
-            .CanFilter()
-            .CanSort();
-
-        mapper.Property<Book>(b => b.Createdat)
-            .CanFilter()
-            .CanSort();
-
-        // Navigational property - access Genre properties from Book queries
-        mapper.Property<Book>(b => b.Genre.Name)
-            .CanFilter()
-            .CanSort()
-            .HasName(SieveConstants.GenreName);
-
-        mapper.Property<Book>(b => b.Genreid)
-            .CanFilter()
-            .CanSort()
-            .HasName(SieveConstants.GenreId);
-
-        // Date parts for books
-        mapper.Property<Book>(b => b.Createdat.Year)
-            .CanFilter()
-            .CanSort()
-            .HasName("PublishedYear");
-
-        mapper.Property<Book>(b => b.Createdat.Month)
-            .CanFilter()
-            .CanSort()
-            .HasName("PublishedMonth");
-
-        mapper.Property<Book>(b => b.Createdat.Date)
-            .CanFilter()
-            .CanSort()
-            .HasName("PublishedDate");
-
-        // Calculated property - page range categorization (e.g., 0-99, 100-199, 200-299, etc.)
-        mapper.Property<Book>(b => b.Pages / 100 * 100)
-            .CanFilter()
-            .CanSort()
-            .HasName("PageRangeStart");
-
-        // Boolean expressions - useful for categorization
-        mapper.Property<Book>(b => b.Pages > 500)
-            .CanFilter()
-            .HasName("IsLongBook"); // Use: ?Filters=IsLongBook==true
-
-        // ========== GENRE PROPERTIES ==========
-
-        // Basic properties
-        mapper.Property<Genre>(g => g.Id)
-            .CanFilter()
-            .CanSort();
-
-        mapper.Property<Genre>(g => g.Name)
-            .CanFilter()
-            .CanSort();
-
-        mapper.Property<Genre>(g => g.Createdat)
-            .CanFilter()
-            .CanSort();
-
-        // Date parts for genres
-        mapper.Property<Genre>(g => g.Createdat.Year)
-            .CanFilter()
-            .CanSort()
-            .HasName("CreatedYear");
-
-        mapper.Property<Genre>(g => g.Createdat.Month)
-            .CanFilter()
-            .CanSort()
-            .HasName("CreatedMonth");
+        // ================= WINNINGBOARD PROPERTIES =================
+        mapper.Property<Winningboard>(w => w.WinningboardId)
+            .CanFilter().CanSort().HasName(SieveConstants.WinningboardId);
+        mapper.Property<Winningboard>(w => w.BoardId)
+            .CanFilter().CanSort().HasName(SieveConstants.WinningboardBoardId);
+        mapper.Property<Winningboard>(w => w.GameId)
+            .CanFilter().CanSort().HasName(SieveConstants.WinningboardGameId);
+        mapper.Property<Winningboard>(w => w.WinningNumbersMatched)
+            .CanFilter().CanSort().HasName(SieveConstants.WinningboardNumbersMatched);
+        mapper.Property<Winningboard>(w => w.Timestamp)
+            .CanFilter().CanSort().HasName(SieveConstants.WinningboardTimestamp);
 
         return mapper;
     }
 }
+*/

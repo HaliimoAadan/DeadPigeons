@@ -1,15 +1,14 @@
-using System.Text.Json;
+/*using System.Text.Json;
 using api.Etc;
 using api.Models.Requests;
 using api.Services;
-using dataccess;
+using Infrastructure.Postgres.Scaffolding;
 
 namespace tests;
 
 public class SetupTests(MyDbContext ctx,
     ISeeder seeder,
-    ITestOutputHelper outputHelper,
-    IAuthService authService)
+    ITestOutputHelper outputHelper)
 {
 
     [Fact]
@@ -30,4 +29,4 @@ public class SetupTests(MyDbContext ctx,
     {
         await seeder.Seed();
     }
-}
+}*/

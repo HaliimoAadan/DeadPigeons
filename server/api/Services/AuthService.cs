@@ -1,10 +1,10 @@
-using System.ComponentModel.DataAnnotations;
+/*using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using api.Models;
 using api.Models.Requests;
-using dataccess;
+using Infrastructure.Postgres.Scaffolding;
 using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
@@ -107,4 +107,4 @@ public class AuthService(
             .AddClaim(nameof(Libraryuser.Id), user.Id)
             .Encode();
     }
-}
+}*/
