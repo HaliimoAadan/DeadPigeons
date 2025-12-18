@@ -1,7 +1,6 @@
 import {type FormEvent, useEffect, useMemo, useState} from "react";
 import toast from "react-hot-toast";
-import type {PlayerCreateDto, PlayerResponseDto} from "@core/generated-client.ts";
-import {playersApi} from "@utilities/playersApi.ts"
+import {playersApi, type PlayerCreateDto, type PlayerResponseDto} from "@utilities/playersApi.ts"
 
 const initialFormState: PlayerCreateDto = {
     fullName: "",
@@ -21,7 +20,7 @@ export default function ManagePlayersPage() {
     useEffect(() => {
         const fetchPlayers = async () => {
             try {
-                const response = await playersApi.getAll(undefined);
+                const response = await playersApi.getAll();
                 setPlayers(response ?? []);
             } catch (error) {
                 console.error(error);

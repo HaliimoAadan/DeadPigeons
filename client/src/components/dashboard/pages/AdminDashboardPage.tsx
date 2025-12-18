@@ -1,8 +1,7 @@
 import {useEffect, useMemo, useState} from "react";
 import toast from "react-hot-toast";
-import {playersApi} from "@utilities/playersApi.ts";
+import {playersApi, type PlayerResponseDto} from "@utilities/playersApi.ts";
 import {transactionsApi, type AdminTransactionListItem} from "@utilities/transactionsApi.ts";
-import type {PlayerResponseDto} from "@core/generated-client.ts";
 
 type AdminStats = {
     totalPlayers: number;
@@ -33,7 +32,7 @@ export default function AdminDashboardPage() {
         const load = async () => {
             try {
                 const [playersResponse, transactionResponse] = await Promise.all([
-                    playersApi.getAll(undefined),
+                    playersApi.getAll(),
                     transactionsApi.list()
                 ]);
 

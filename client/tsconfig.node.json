@@ -20,6 +20,10 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ],
     "types": ["node"]
   },
   "include": [

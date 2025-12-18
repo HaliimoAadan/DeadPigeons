@@ -1,8 +1,8 @@
 import {useEffect, useState} from "react";
 import type {FormEvent} from "react";
 import toast from "react-hot-toast";
-import type {SubmitTransactionDto, TransactionResponseDto} from "@core/generated-client.ts";
-import {transactionsApi} from "@utilities/transactionsApi.ts";
+import {transactionsApi, type SubmitTransactionDto, type TransactionResponseDto} from "@utilities/transactionsApi.ts";
+
 
 const defaultDto: SubmitTransactionDto = {
     mobilePayReqId: "",

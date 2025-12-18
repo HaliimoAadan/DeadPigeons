@@ -4,6 +4,7 @@ using api.Helpers;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NSwag;
 using Scalar.AspNetCore;
 using Sieve.Models;
@@ -18,7 +19,7 @@ public class Program
     {
         services.AddSingleton(TimeProvider.System);
         services.InjectAppOptions();
-        services.AddMyDbContext();
+        //services.AddMyDbContext();
         services.AddControllers().AddJsonOptions(opts =>
         {
             opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
@@ -73,11 +74,11 @@ public class Program
         var builder = WebApplication.CreateBuilder();
         
         var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
-
-            builder.Services.AddDbContext<MyDbContext>(options =>
-            {
-                options.UseNpgsql(connectionString);
-            });
+        
+        builder.Services.AddDbContext<MyDbContext>(options =>
+        {
+            options.UseNpgsql(connectionString);
+        });
             
         ConfigureServices(builder.Services);
         

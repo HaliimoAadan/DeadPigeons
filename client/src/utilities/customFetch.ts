@@ -13,7 +13,8 @@ export const customFetch = {
         const headers = new Headers(init?.headers);
 
         if (token) {
-            headers.set('Authorization', token);
+            const authHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+            headers.set('Authorization', authHeader);        
         }
 
         return fetch(url, {
@@ -22,10 +23,14 @@ export const customFetch = {
         }).then(async (response) => {
             // Handle errors by reading from one clone
             if (!response.ok) {
-                const errorClone = response.clone();
-                const problemDetails = (await errorClone.json()) as ProblemDetails;
-                console.log(problemDetails)
-                toast(problemDetails.title)
+                try {
+                    const errorClone = response.clone();
+                    const problemDetails = (await errorClone.json()) as ProblemDetails;
+                    console.log(problemDetails);
+                    toast(problemDetails.title ?? "Request failed");
+                } catch {
+                    toast("Request failed");
+                }
             }
 
             return response;

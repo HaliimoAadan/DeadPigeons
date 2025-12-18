@@ -21,6 +21,9 @@ export default function Dashboard() {
 
     const handleLogout = () => {
         setCurrentUser(null);
+        localStorage.removeItem("jwt");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userName")
         navigate("/auth");
     };
 

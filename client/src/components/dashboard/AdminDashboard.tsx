@@ -21,6 +21,9 @@ export default function AdminDashboard() {
     const navigate = useNavigate();
 
     const handleLogout = () => {
+        localStorage.removeItem("jwt");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userName");
         setCurrentUser(null);
         navigate("/auth");
     };

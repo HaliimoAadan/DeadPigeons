@@ -1,4 +1,3 @@
-import type {SubmitTransactionDto, TransactionResponseDto, UpdateTransactionStatusDto} from "@core/generated-client.ts";
 import {baseUrl} from "@core/baseUrl.ts";
 import {customFetch} from "@utilities/customFetch.ts";
 
@@ -13,6 +12,25 @@ export type AdminTransactionListItem = {
     status: "Pending" | "Approved" | "Rejected" | string;
     timestamp: string;
 };
+
+export type SubmitTransactionDto = {
+    mobilePayReqId: string;
+    amount: number;
+};
+
+export type TransactionResponseDto = {
+    transactionId: string;
+    playerId: string;
+    mobilePayReqId: string;
+    amount: number;
+    status: string;
+    timestamp: string;
+};
+
+export type UpdateTransactionStatusDto = {
+    status: "Pending" | "Approved" | "Rejected" | string;
+};
+
 
 const jsonHeaders = {
     "Accept": "application/json"
@@ -30,12 +48,19 @@ export const transactionsApi = {
             `${baseUrl}/api/Transactions${query ? `?${query}` : ""}`,
             {
                 method: "GET",
-                headers: jsonHeaders
+                headers: jsonHeaders,
             }
         );
 
         if (!response.ok) throw new Error("Failed to fetch transactions");
-        return await response.json() as AdminTransactionListItem[];
+
+        const data: any = await response.json();
+
+        // Accept both: [ ... ]  OR  { $values: [ ... ] }
+        if (Array.isArray(data)) return data as AdminTransactionListItem[];
+        if (data && Array.isArray(data.$values)) return data.$values as AdminTransactionListItem[];
+
+        return [];
     },
 
     async updateStatus(transactionId: string, status: UpdateTransactionStatusDto["status"]): Promise<void> {

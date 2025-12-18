@@ -138,14 +138,8 @@ public static class DiExtensions
 
     public static void AddMyDbContext(this IServiceCollection services)
     {
-        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new Exception("DATABASE_URL not set in environment variables.");
-
-        services.AddDbContext<MyDbContext>(
-            (serviceProvider, options) => { options.UseNpgsql(connectionString); },
-            ServiceLifetime.Transient
-        );
+        
+          
     }
     
     public static void InjectAppOptions(this IServiceCollection services)
