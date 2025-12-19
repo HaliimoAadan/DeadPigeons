@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using efscaffold.Entities;
 using Microsoft.EntityFrameworkCore;
-using efscaffold.Entities;
 
-namespace Infrastructure.Postgres.Scaffolding;
+namespace efscaffold;
 
 public partial class MyDbContext : DbContext
 {

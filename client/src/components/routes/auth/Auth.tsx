@@ -1,48 +1,168 @@
 import {useState} from "react";
-import {type Book, type LoginRequestDto, type RegisterRequestDto} from "@core/generated-client.ts";
+import {type LoginRequestDto} from "@core/generated-client.ts";
 import {authApi} from "@utilities/authApi.ts";
 import toast from "react-hot-toast";
-import {libraryApi} from "@utilities/libraryApi.ts";
-import {SieveQueryBuilder} from "ts-sieve-query-builder";
+import {useNavigate} from "react-router";
+import {useSetAtom} from "jotai";
+import {currentUserAtom} from "@components/dashboard/state/gameAtoms";
+import {ApiException} from "@core/generated-client.ts";
+
+type LoginRole = "player" | "admin";
+
+async function extractToken(response: { data: Blob; headers?: Record<string, string> } | null) {
+    if (!response) return null;
+
+    const headerToken = response.headers?.authorization || response.headers?.Authorization;
+    if (typeof headerToken === "string" && headerToken.trim().length > 0) {
+        return headerToken.replace(/^Bearer\s+/i, "").trim();
+    }
+
+    if (!response.data) return null;
+
+    try {
+        const text = await response.data.text();
+        const parsed = JSON.parse(text) as { token?: string; Token?: string };
+        const token = parsed.token ?? parsed.Token;
+
+        if (token && token.trim().length > 0) {
+            return token.trim();
+        }
+
+        const raw = text.trim();
+        return raw.length > 0 ? raw.replace(/^"|"$/g, "") : null;
+    } catch (error) {
+        console.error("Unable to parse login response", error);
+        return null;
+    }
+
+}
+
 
 export default function Auth() {
-    
-    const [registerForm, setRegisterForm] = useState<RegisterRequestDto>({
-        email: '',
-        password: ''
-    })
-    const [books, setBooks] = useState<Book[]>([])
 
+    const navigate = useNavigate();
+    const setCurrentUser = useSetAtom(currentUserAtom);
 
-    return <>
-    
-         <input className="input" placeholder="please write an email here to regsiter" onChange={e => setRegisterForm({...registerForm, email: e.target.value})} />
-        <input className="input" placeholder="password longer than 8 chars"   onChange={e => setRegisterForm({...registerForm, password: e.target.value})} />
-        
-        <button className="btn btn-primary" disabled={registerForm.password.length < 8} onClick={() => {
-            authApi.register(registerForm).
-            then(r => {
-                localStorage.setItem('jwt', r.token)
-                toast.success('welcome')
-            })
-        }}>register me</button>
-        
-        
-        <button className="btn"  onClick={() => {
-            const q = SieveQueryBuilder.create<Book>()
-                .page(1)
-                .pageSize(10)
-                .sortBy("title");
-            libraryApi.getBooks(q.buildSieveModel()).then(r => {
-                console.log(r)
-                setBooks(r)
-            })
-        }}>click here to fetch books (requires you to register first)</button>
+    const [credentials, setCredentials] = useState<LoginRequestDto>({
+        email: "",
+        password: "",
+    });
+    const [role, setRole] = useState<LoginRole>("player");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-        {
-            books && books.length > 0 && books.map(b => {
-                return <div>{b.title}</div>
-            })
+    const handleLogin = async () => {
+        setIsSubmitting(true);
+        try {
+            const response =
+                role === "player"
+                    ? await authApi.playerLogin(credentials)
+                    : await authApi.adminLogin(credentials);
+
+            const token = await extractToken(response);
+
+            if (!token) {
+                toast.error("Login failed: no token returned");
+                return;
+            }
+
+            const formattedToken = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+            localStorage.setItem("jwt", formattedToken);
+            localStorage.setItem("userRole", role);
+            localStorage.setItem("userName", credentials.email);
+
+            setCurrentUser({
+                name: credentials.email,
+                role,
+            });
+
+            toast.success("Signed in successfully");
+            navigate(role === "player" ? "/player" : "/admin");
+        } catch (error) {
+            console.error(error);
+
+            if (error instanceof ApiException) {
+                toast.error(
+                    error.response ||
+                    "Invalid credentials. Double-check the email/password and role (Admin vs Player)."
+                );
+            } else {
+                toast.error("Invalid credentials. Double-check the email/password and role (Admin vs Player).");
+            }
+            localStorage.removeItem("jwt");
+        } finally {
+            setIsSubmitting(false);
         }
-    </>
+    };
+
+    const canSubmit = credentials.email.trim() !== "" && credentials.password.trim() !== "";
+    
+    return (
+
+        <div className="min-h-screen bg-[#f8f1e7] px-6 py-12 text-slate-800">
+
+            <div className="mx-auto max-w-lg space-y-6 rounded-3xl bg-white/80 p-8 shadow-lg shadow-orange-100">
+                <div className="min-h-screen bg-gradient-to-br from-[#fef3ec] via-[#fffaf6] to-[#f3f4ff] px-4 py-12 text-slate-800">
+                    <div className="mx-auto flex max-w-5xl flex-col gap-8 rounded-3xl bg-white/80 p-8 shadow-2xl shadow-orange-100/60 backdrop-blur">
+                        <div className="flex flex-col gap-2 text-center">
+                    <span className="mx-auto inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-[#f1812c]">
+                        Dead Pigeons
+                    </span>
+                            <h1 className="text-3xl font-semibold text-slate-700">Sign in to your dashboard</h1>
+                </div>
+
+                        <div className="grid grid-cols-2 gap-3 rounded-2xl bg-[#fefbf7] p-2">
+                            {(["player", "admin"] as LoginRole[]).map((option) => (
+                        <button
+                            key={option}
+                            type="button"
+                            onClick={() => setRole(option)}
+                            className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                                role === option
+                                    ? "bg-[#f1812c] text-white shadow"
+                                    : "text-slate-600 hover:bg-orange-50"
+                            }`}
+                        >
+                            
+                            {option === "player" ? "Player" : "Admin"}
+                        </button>
+                    ))}
+                </div>
+                        <label className="form-control">
+                            <span className="label-text mb-1 text-sm text-slate-600">Email</span>
+                            <input
+                                className="input input-bordered w-full"
+                                placeholder="you@example.com"
+                                value={credentials.email}
+                                onChange={(e) => setCredentials({...credentials, email: e.target.value})}
+                                type="email"
+                                autoComplete="email"
+                                required
+                            />
+                        </label>
+                        <label className="form-control">
+                            <span className="label-text mb-1 text-sm text-slate-600">Password</span>
+                            <input
+                                className="input input-bordered w-full"
+                                placeholder="••••••••"
+                                value={credentials.password}
+                                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                                type="password"
+                                autoComplete="current-password"
+                                required
+                            />
+                        </label>
+
+                <button
+                    className="btn btn-primary w-full"
+                    disabled={!canSubmit || isSubmitting}
+                    onClick={handleLogin}
+                >
+                    {isSubmitting ? "Signing in…" : `Sign in as ${role === "player" ? "Player" : "Admin"}`}
+                </button>
+                </div>
+            </div>
+            </div>
+        </div>
+    );
 }

@@ -13,13 +13,20 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "emitDeclarationOnly": true,
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "composite": true,
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ],
+    "types": ["node"]
   },
   "include": [
     "vite.config.ts"

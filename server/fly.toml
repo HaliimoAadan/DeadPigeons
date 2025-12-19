@@ -1,19 +1,19 @@
-# fly.toml app configuration file generated for projectsolutionserver on 2025-09-15T10:06:35+02:00
+# fly.toml app configuration file generated for projectsolutionserver-morning-snowflake-4604 on 2025-12-12T03:34:32+01:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'projectsolutionserver'
+app = 'projectsolutionserver-morning-snowflake-4604'
 primary_region = 'fra'
 
 [build]
 
 [http_service]
   internal_port = 8080
-  force_https = true
+  force_https = false
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
   processes = ['app']
 
 [[vm]]

@@ -1,17 +1,177 @@
 {
-  "x-generator": "NSwag v14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))",
+  "x-generator": "NSwag v14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))",
   "openapi": "3.0.0",
   "info": {
-    "title": "My Title",
+    "title": "Dead Pigeons API",
+    "description": "API for the Dead Pigeons bingo project.",
     "version": "1.0.0"
   },
   "paths": {
-    "/Login": {
+    "/api/Admin": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "Admin_GetAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "Admin_Create",
+        "requestBody": {
+          "x-name": "admin",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Admin"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Admin/{id}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "Admin_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "Admin_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "updatedAdmin",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Admin"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "Admin_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login/player": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "operationId": "Auth_Login",
+        "operationId": "Auth_PlayerLogin",
         "requestBody": {
           "x-name": "dto",
           "content": {
@@ -28,9 +188,10 @@
           "200": {
             "description": "",
             "content": {
-              "application/json": {
+              "application/octet-stream": {
                 "schema": {
-                  "$ref": "#/components/schemas/JwtResponse"
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -38,18 +199,18 @@
         }
       }
     },
-    "/Register": {
+    "/api/auth/login/admin": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "operationId": "Auth_Register",
+        "operationId": "Auth_AdminLogin",
         "requestBody": {
           "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequestDto"
+                "$ref": "#/components/schemas/LoginRequestDto"
               }
             }
           },
@@ -60,9 +221,10 @@
           "200": {
             "description": "",
             "content": {
-              "application/json": {
+              "application/octet-stream": {
                 "schema": {
-                  "$ref": "#/components/schemas/JwtResponse"
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -70,38 +232,37 @@
         }
       }
     },
-    "/WhoAmI": {
-      "post": {
+    "/api/Board": {
+      "get": {
         "tags": [
-          "Auth"
+          "Board"
         ],
-        "operationId": "Auth_WhoAmI",
+        "operationId": "Board_GetAll",
         "responses": {
           "200": {
             "description": "",
             "content": {
-              "application/json": {
+              "application/octet-stream": {
                 "schema": {
-                  "$ref": "#/components/schemas/JwtClaims"
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
           }
         }
-      }
-    },
-    "/GetBooks": {
+      },
       "post": {
         "tags": [
-          "Library"
+          "Board"
         ],
-        "operationId": "Library_GetBooks",
+        "operationId": "Board_Create",
         "requestBody": {
-          "x-name": "sieveModel",
+          "x-name": "board",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SieveModel"
+                "$ref": "#/components/schemas/Board"
               }
             }
           },
@@ -112,12 +273,10 @@
           "200": {
             "description": "",
             "content": {
-              "application/json": {
+              "application/octet-stream": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Book"
-                  }
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -125,82 +284,20 @@
         }
       }
     },
-    "/CreateBook": {
-      "post": {
+    "/api/Board/{id}": {
+      "get": {
         "tags": [
-          "Library"
+          "Board"
         ],
-        "operationId": "Library_CreateBook",
-        "requestBody": {
-          "x-name": "dto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBookRequestDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Book"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/UpdateBook": {
-      "put": {
-        "tags": [
-          "Library"
-        ],
-        "operationId": "Library_UpdateBook",
-        "requestBody": {
-          "x-name": "dto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateBookRequestDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Book"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/DeleteBook": {
-      "delete": {
-        "tags": [
-          "Library"
-        ],
-        "operationId": "Library_DeleteBook",
+        "operationId": "Board_Get",
         "parameters": [
           {
-            "name": "bookId",
-            "in": "query",
+            "name": "id",
+            "in": "path",
+            "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "guid"
             },
             "x-position": 1
           }
@@ -209,9 +306,720 @@
           "200": {
             "description": "",
             "content": {
-              "application/json": {
+              "application/octet-stream": {
                 "schema": {
-                  "$ref": "#/components/schemas/Book"
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Board"
+        ],
+        "operationId": "Board_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "updatedBoard",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Board"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Board"
+        ],
+        "operationId": "Board_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Game": {
+      "get": {
+        "tags": [
+          "Game"
+        ],
+        "operationId": "Game_GetAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Game"
+        ],
+        "operationId": "Game_Create",
+        "requestBody": {
+          "x-name": "game",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Game"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Game/{id}": {
+      "get": {
+        "tags": [
+          "Game"
+        ],
+        "operationId": "Game_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Game"
+        ],
+        "operationId": "Game_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "updatedGame",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Game"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Game"
+        ],
+        "operationId": "Game_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Player": {
+      "get": {
+        "tags": [
+          "Player"
+        ],
+        "operationId": "Player_GetAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Player"
+        ],
+        "operationId": "Player_Create",
+        "requestBody": {
+          "x-name": "player",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Player"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Player/{id}": {
+      "get": {
+        "tags": [
+          "Player"
+        ],
+        "operationId": "Player_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Player"
+        ],
+        "operationId": "Player_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "updatedPlayer",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Player"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Player"
+        ],
+        "operationId": "Player_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Transaction": {
+      "get": {
+        "tags": [
+          "Transaction"
+        ],
+        "operationId": "Transaction_GetAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Transaction"
+        ],
+        "operationId": "Transaction_Create",
+        "requestBody": {
+          "x-name": "transaction",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transaction"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Transaction/{id}": {
+      "get": {
+        "tags": [
+          "Transaction"
+        ],
+        "operationId": "Transaction_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Transaction"
+        ],
+        "operationId": "Transaction_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "updatedTransaction",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Transaction"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Transaction"
+        ],
+        "operationId": "Transaction_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/WinningBoard": {
+      "get": {
+        "tags": [
+          "WinningBoard"
+        ],
+        "operationId": "WinningBoard_GetAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "WinningBoard"
+        ],
+        "operationId": "WinningBoard_Create",
+        "requestBody": {
+          "x-name": "board",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Winningboard"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/WinningBoard/{id}": {
+      "get": {
+        "tags": [
+          "WinningBoard"
+        ],
+        "operationId": "WinningBoard_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "WinningBoard"
+        ],
+        "operationId": "WinningBoard_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "updatedBoard",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Winningboard"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "WinningBoard"
+        ],
+        "operationId": "WinningBoard_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -222,11 +1030,24 @@
   },
   "components": {
     "schemas": {
-      "JwtResponse": {
+      "Admin": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "token": {
+          "adminId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "passwordHash": {
             "type": "string"
           }
         }
@@ -234,236 +1055,229 @@
       "LoginRequestDto": {
         "type": "object",
         "additionalProperties": false,
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          }
-        }
-      },
-      "RegisterRequestDto": {
-        "type": "object",
-        "additionalProperties": false,
+        "required": [
+          "email",
+          "password"
+        ],
         "properties": {
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "minLength": 1
           },
           "password": {
             "type": "string",
-            "minLength": 8
+            "minLength": 1
           }
         }
       },
-      "JwtClaims": {
+      "Board": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string"
-          }
-        }
-      },
-      "Book": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
+          "boardId": {
+            "type": "string",
+            "format": "guid"
           },
-          "title": {
-            "type": "string"
+          "playerId": {
+            "type": "string",
+            "format": "guid"
           },
-          "pages": {
-            "type": "integer",
-            "format": "int32"
+          "gameId": {
+            "type": "string",
+            "format": "guid"
           },
-          "createdat": {
+          "chosenNumbers": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "price": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "isRepeating": {
+            "type": "boolean"
+          },
+          "repeatUntilGameId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "timestamp": {
             "type": "string",
             "format": "date-time"
           },
-          "genreid": {
-            "type": "string",
-            "nullable": true
+          "game": {
+            "$ref": "#/components/schemas/Game"
           },
-          "genre": {
+          "player": {
+            "$ref": "#/components/schemas/Player"
+          },
+          "repeatUntilGame": {
             "nullable": true,
             "oneOf": [
               {
-                "$ref": "#/components/schemas/Genre"
+                "$ref": "#/components/schemas/Game"
               }
             ]
           },
-          "authors": {
+          "winningboards": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Author"
+              "$ref": "#/components/schemas/Winningboard"
             }
           }
         }
       },
-      "Genre": {
+      "Game": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string"
+          "gameId": {
+            "type": "string",
+            "format": "guid"
           },
-          "name": {
-            "type": "string"
+          "winningNumbers": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
           },
-          "createdat": {
+          "drawDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "expirationDate": {
             "type": "string",
             "format": "date-time"
           },
-          "books": {
+          "boardGames": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Book"
+              "$ref": "#/components/schemas/Board"
+            }
+          },
+          "boardRepeatUntilGames": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Board"
+            }
+          },
+          "winningboards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Winningboard"
             }
           }
         }
       },
-      "Author": {
+      "Winningboard": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string"
+          "winningboardId": {
+            "type": "string",
+            "format": "guid"
           },
-          "name": {
-            "type": "string"
+          "gameId": {
+            "type": "string",
+            "format": "guid"
           },
-          "createdat": {
+          "boardId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "winningNumbersMatched": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timestamp": {
             "type": "string",
             "format": "date-time"
           },
-          "books": {
+          "board": {
+            "$ref": "#/components/schemas/Board"
+          },
+          "game": {
+            "$ref": "#/components/schemas/Game"
+          }
+        }
+      },
+      "Player": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "playerId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "passwordHash": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "boards": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Book"
+              "$ref": "#/components/schemas/Board"
+            }
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
             }
           }
         }
       },
-      "SieveModel": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/SieveModelOfFilterTermAndSortTerm"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false
-          }
-        ]
-      },
-      "SieveModelOfFilterTermAndSortTerm": {
+      "Transaction": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "filters": {
+          "transactionId": {
             "type": "string",
-            "nullable": true
+            "format": "guid"
           },
-          "sorts": {
+          "playerId": {
             "type": "string",
-            "nullable": true
+            "format": "guid"
           },
-          "page": {
-            "type": "integer",
-            "format": "int32",
-            "maximum": 2147483647.0,
-            "minimum": 1.0,
-            "nullable": true
+          "mobilepayReqId": {
+            "type": "string"
           },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32",
-            "maximum": 2147483647.0,
-            "minimum": 1.0,
-            "nullable": true
+          "amount": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "player": {
+            "$ref": "#/components/schemas/Player"
           }
-        }
-      },
-      "CreateBookRequestDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "pages",
-          "title"
-        ],
-        "properties": {
-          "pages": {
-            "type": "integer",
-            "format": "int32",
-            "maximum": 2147483647.0,
-            "minimum": 1.0
-          },
-          "title": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      },
-      "UpdateBookRequestDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "bookIdForLookupReference",
-          "newPageCount",
-          "newTitle",
-          "authorsIds"
-        ],
-        "properties": {
-          "bookIdForLookupReference": {
-            "type": "string",
-            "minLength": 1
-          },
-          "newPageCount": {
-            "type": "integer",
-            "format": "int32",
-            "maximum": 2147483647.0,
-            "minimum": 1.0
-          },
-          "newTitle": {
-            "type": "string",
-            "minLength": 1
-          },
-          "authorsIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "genreId": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "SieveConstants": {
-        "type": "object",
-        "description": "String constants from SieveConstants",
-        "additionalProperties": false,
-        "properties": {
-          "GenreName": {
-            "type": "string",
-            "readOnly": true,
-            "description": "Constant value: \"GenreName\"",
-            "default": "GenreName"
-          },
-          "GenreId": {
-            "type": "string",
-            "readOnly": true,
-            "description": "Constant value: \"GenreId\"",
-            "default": "GenreId"
-          }
-        },
-        "x-constant-values": {
-          "GenreName": "GenreName",
-          "GenreId": "GenreId"
         }
       }
     }
