@@ -33,15 +33,16 @@ public class GameController : ControllerBase
         if (game == null) return NotFound();
         return Ok(game);
     }
-
-    [HttpPost]
+    
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateGameDto dto)
     {
         var game = new Game
         {
+            GameId = Guid.NewGuid(),
             ExpirationDate = dto?.ExpirationDate ?? DateTime.UtcNow.AddYears(20),
         };
+
 
         _dbContext.Games.Add(game);
         await _dbContext.SaveChangesAsync();

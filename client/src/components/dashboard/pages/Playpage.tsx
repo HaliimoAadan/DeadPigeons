@@ -1,5 +1,6 @@
 import {useAtom} from "jotai";
 import NumberGrid from "../NumberGrid";
+import {useNavigate} from "react-router";
 import {playerSelectionAtom} from "../state/gameAtoms";
 
 const pricing: Record<number, number> = {
@@ -17,6 +18,7 @@ const getWeekNumber = (date: Date) => {
 
 export default function PlayPage() {
     const [selectedNumbers, setSelectedNumbers] = useAtom(playerSelectionAtom);
+    const navigate = useNavigate();
     const today = new Date();
     const currentWeek = getWeekNumber(today);
 
@@ -56,6 +58,7 @@ export default function PlayPage() {
                                 ? "bg-[#f7a166] text-white shadow-xl shadow-orange-200"
                                 : "bg-slate-200 text-slate-500"
                         }`}
+                        onClick={() => navigate("/player/boards")}
                     >
                         Next!
                     </button>

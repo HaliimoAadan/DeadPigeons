@@ -16,3 +16,4 @@ public class PlayerResponseDto
     public string Email { get; set; } = null!;
     public bool IsActive { get; set; }
 }
+

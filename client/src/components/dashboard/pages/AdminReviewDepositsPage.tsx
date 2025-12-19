@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import type {FormEvent} from "react";
 import toast from "react-hot-toast";
 import {transactionsApi, type AdminTransactionListItem} from "@utilities/transactionsApi.ts";
@@ -6,14 +6,14 @@ import {playersApi} from "@utilities/playersApi.ts";
 
 const statusOptions = ["Pending", "Approved", "Rejected"] as const;
 
-type TransactionTableRow = AdminTransactionListItem;
-
 export default function AdminReviewDepositsPage() {
-    const [transactions, setTransactions] = useState<TransactionTableRow[]>([]);
+    const [transactions, setTransactions] = useState<AdminTransactionListItem[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>("Pending");
     const [search, setSearch] = useState<string>("");
     const [loading, setLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    const [playerLookup, setPlayerLookup] = useState<Map<string, {fullName: string; email: string}>>(new Map());
 
     const fetchTransactions = async () => {
         setLoading(true);
@@ -29,8 +29,21 @@ export default function AdminReviewDepositsPage() {
     };
 
     useEffect(() => {
-        fetchTransactions();
+        void fetchTransactions();
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const players = await playersApi.getAll();
+                const map = new Map<string, {fullName: string; email: string}>();
+                players.forEach((p) => map.set(p.playerId, {fullName: p.fullName, email: p.email}));
+                setPlayerLookup(map);
+            } catch (e) {
+                console.error(e);
+            }
+        })();
     }, []);
 
     const onSubmitFilters = async (event: FormEvent<HTMLFormElement>) => {
@@ -38,10 +51,11 @@ export default function AdminReviewDepositsPage() {
         await fetchTransactions();
     };
 
-    const updateStatus = async (transaction: TransactionTableRow, status: TransactionTableRow["status"]) => {
+    const updateStatus = async (transaction: AdminTransactionListItem, status: AdminTransactionListItem["status"]) => {
         setIsUpdating(true);
         try {
             await transactionsApi.updateStatus(transaction.transactionId, status);
+
             if (status === "Approved") {
                 await playersApi.updateStatus(transaction.playerId, true);
             }
@@ -56,18 +70,35 @@ export default function AdminReviewDepositsPage() {
         }
     };
 
+    const rows = useMemo(() => {
+        return transactions.map((t) => {
+            const fromLookup = playerLookup.get(t.playerId);
+
+            const fallbackName = `${t.playerFirstName ?? ""} ${t.playerLastName ?? ""}`.trim();
+            const fullName = (fromLookup?.fullName?.trim() || fallbackName || t.playerId);
+
+            const email = (fromLookup?.email || t.playerEmail || "").trim();
+
+            return {t, fullName, email};
+        });
+    }, [transactions, playerLookup]);
+
     return (
         <section className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Deposits</p>
                     <h2 className="text-3xl font-semibold text-slate-900">Review MobilePay Transactions</h2>
-                    <p className="mt-2 max-w-2xl text-slate-600">Approve or reject incoming player deposits using the transaction number they submitted.</p>
+                    <p className="mt-1 max-w-2xl text-sm text-slate-600">
+                        Approve or reject deposits. Approving activates the player.
+                    </p>
                 </div>
             </div>
 
-
-            <form onSubmit={onSubmitFilters} className="grid gap-4 rounded-3xl bg-white/90 p-4 shadow-lg shadow-orange-100 md:grid-cols-3">
+            <form
+                onSubmit={onSubmitFilters}
+                className="grid gap-4 rounded-3xl bg-white/90 p-4 shadow-lg shadow-orange-100 md:grid-cols-3"
+            >
                 <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
                     Status
                     <select
@@ -76,11 +107,12 @@ export default function AdminReviewDepositsPage() {
                         className="rounded-2xl border border-orange-100 px-3 py-2 text-sm shadow-inner focus:border-orange-300 focus:outline-none"
                     >
                         <option value="">All</option>
-                        {statusOptions.map((status) => (
-                            <option key={status} value={status}>{status}</option>
+                        {statusOptions.map((s) => (
+                            <option key={s} value={s}>{s}</option>
                         ))}
                     </select>
                 </label>
+
                 <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 md:col-span-2">
                     Search by player or transaction number
                     <div className="flex gap-3">
@@ -88,7 +120,7 @@ export default function AdminReviewDepositsPage() {
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                             className="flex-1 rounded-2xl border border-orange-100 px-3 py-2 text-sm shadow-inner focus:border-orange-300 focus:outline-none"
-                            placeholder="Type part of the transaction number or player name"
+                            placeholder="Transaction id, player name, email…"
                         />
                         <button
                             type="submit"
@@ -111,47 +143,59 @@ export default function AdminReviewDepositsPage() {
                         <th className="px-6 py-3">Actions</th>
                     </tr>
                     </thead>
+
                     <tbody className="divide-y divide-orange-50">
                     {loading && (
                         <tr>
                             <td colSpan={5} className="px-6 py-8 text-center text-slate-500">Loading deposits…</td>
                         </tr>
                     )}
-                    {!loading && transactions.length === 0 && (
+
+                    {!loading && rows.length === 0 && (
                         <tr>
                             <td colSpan={5} className="px-6 py-8 text-center text-slate-500">No deposits match the current filters.</td>
                         </tr>
                     )}
-                    {!loading && transactions.map((transaction) => (
-                        <tr key={transaction.transactionId} className="transition hover:bg-[#fff8f0]">
-                            <td className="px-6 py-4 font-semibold text-slate-900">{transaction.mobilePayReqId}</td>
+
+                    {!loading && rows.map(({t, fullName, email}) => (
+                        <tr key={t.transactionId} className="transition hover:bg-[#fff8f0]">
+                            <td className="px-6 py-4 font-semibold text-slate-900">{t.mobilePayReqId}</td>
+
                             <td className="px-6 py-4 text-slate-700">
-                                <div className="font-medium text-slate-900">{transaction.playerFirstName} {transaction.playerLastName}</div>
-                                <div className="text-xs text-slate-500">{transaction.playerEmail}</div>
+                                <div className="font-medium text-slate-900">{fullName}</div>
+                                <div className="text-xs text-slate-500">{email || "—"}</div>
                             </td>
-                            <td className="px-6 py-4 text-slate-700">{transaction.amount} DKK</td>
+
+                            <td className="px-6 py-4 text-slate-700">{t.amount} DKK</td>
+
                             <td className="px-6 py-4">
-                                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                    transaction.status === "Approved" ? "bg-emerald-100 text-emerald-700" :
-                                        transaction.status === "Rejected" ? "bg-rose-100 text-rose-700" :
-                                            "bg-amber-100 text-amber-700"
-                                }`}>
-                                    {transaction.status}
-                                </span>
+                  <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          t.status === "Approved"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : t.status === "Rejected"
+                                  ? "bg-rose-100 text-rose-700"
+                                  : "bg-amber-100 text-amber-700"
+                      }`}
+                  >
+                    {t.status}
+                  </span>
                             </td>
+
                             <td className="px-6 py-4 space-x-2">
                                 <button
                                     type="button"
-                                    onClick={() => updateStatus(transaction, "Approved")}
-                                    disabled={isUpdating || transaction.status === "Approved"}
+                                    onClick={() => updateStatus(t, "Approved")}
+                                    disabled={isUpdating || t.status === "Approved"}
                                     className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-inner disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     Approve
                                 </button>
+
                                 <button
                                     type="button"
-                                    onClick={() => updateStatus(transaction, "Rejected")}
-                                    disabled={isUpdating || transaction.status === "Rejected"}
+                                    onClick={() => updateStatus(t, "Rejected")}
+                                    disabled={isUpdating || t.status === "Rejected"}
                                     className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700 shadow-inner disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     Reject

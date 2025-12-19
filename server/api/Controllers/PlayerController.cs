@@ -147,4 +147,49 @@ public class PlayerController : ControllerBase
 
         return NoContent();
     }
+    
+    // -------------------------
+// POST /api/player
+// -------------------------
+    [HttpPost]
+    public async Task<ActionResult<PlayerResponseDto>> Create([FromBody] PlayerCreateDto dto)
+    {
+        if (dto == null) return BadRequest("Body is required.");
+
+        var fullName = (dto.FullName ?? "").Trim();
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return BadRequest("FullName is required.");
+
+        var firstName = parts[0];
+        var lastName = parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : "";
+
+        var email = (dto.Email ?? "").Trim();
+        var phone = (dto.PhoneNumber ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(email)) return BadRequest("Email is required.");
+        if (string.IsNullOrWhiteSpace(phone)) return BadRequest("PhoneNumber is required.");
+
+        var player = new Player
+        {
+            PlayerId = Guid.NewGuid(),
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email,
+            PhoneNumber = phone,
+            IsActive = dto.IsActive ?? true,
+            PasswordHash = string.Empty
+        };
+
+        _db.Players.Add(player);
+        await _db.SaveChangesAsync();
+
+        return Ok(new PlayerResponseDto
+        {
+            PlayerId = player.PlayerId,
+            FullName = ((player.FirstName ?? "") + " " + (player.LastName ?? "")).Trim(),
+            Email = player.Email,
+            PhoneNumber = player.PhoneNumber,
+            IsActive = player.IsActive
+        });
+    }
+
 }

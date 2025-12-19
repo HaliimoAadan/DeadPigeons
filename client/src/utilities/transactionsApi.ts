@@ -37,35 +37,37 @@ const jsonHeaders = {
 };
 
 export const transactionsApi = {
-    async list(status?: string, search?: string): Promise<AdminTransactionListItem[]> {
-        const params = new URLSearchParams();
+        async list(status?: string, search?: string): Promise<AdminTransactionListItem[]> {
+            const params = new URLSearchParams();
 
-        if (status) params.set("status", status);
-        if (search) params.set("search", search);
+            if (status) params.set("status", status);
+            if (search) params.set("search", search);
 
-        const query = params.toString();
-        const response = await customFetch.fetch(
-            `${baseUrl}/api/Transactions${query ? `?${query}` : ""}`,
-            {
-                method: "GET",
-                headers: jsonHeaders,
-            }
-        );
+            const query = params.toString();
 
-        if (!response.ok) throw new Error("Failed to fetch transactions");
+            const response = await customFetch.fetch(
+                `${baseUrl}/api/transaction/list${query ? `?${query}` : ""}`,
+                {
+                    method: "GET",
+                    headers: jsonHeaders,
+                }
+            );
 
-        const data: any = await response.json();
+            if (!response.ok) throw new Error("Failed to fetch transactions");
 
-        // Accept both: [ ... ]  OR  { $values: [ ... ] }
-        if (Array.isArray(data)) return data as AdminTransactionListItem[];
-        if (data && Array.isArray(data.$values)) return data.$values as AdminTransactionListItem[];
+            const data: any = await response.json();
 
-        return [];
+            // Accept both: [ ... ]  OR  { $values: [ ... ] }
+            if (Array.isArray(data)) return data as AdminTransactionListItem[];
+            if (data && Array.isArray(data.$values)) return data.$values as AdminTransactionListItem[];
+
+            return [];
+
     },
 
     async updateStatus(transactionId: string, status: UpdateTransactionStatusDto["status"]): Promise<void> {
         const response = await customFetch.fetch(
-            `${baseUrl}/api/Transactions/${transactionId}/status`,
+            `${baseUrl}/api/Transaction/${transactionId}/status`,
             {
                 method: "PATCH",
                 headers: {
@@ -81,7 +83,7 @@ export const transactionsApi = {
 
     async submit(playerId: string, dto: SubmitTransactionDto): Promise<TransactionResponseDto> {
         const response = await customFetch.fetch(
-            `${baseUrl}/api/Transactions/submit`,
+            `${baseUrl}/api/Transaction/submit`,
             {
                 method: "POST",
                 headers: {
@@ -95,5 +97,19 @@ export const transactionsApi = {
 
         if (!response.ok) throw new Error("Failed to submit transaction");
         return await response.json() as TransactionResponseDto;
+
+    },
+
+    async getBalance(playerId: string): Promise<{ playerId: string; approvedDeposits: number; spent: number; balance: number }> {
+        const response = await customFetch.fetch(`${baseUrl}/api/transaction/me/balance`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "X-Player-Id": playerId
+            }
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch balance");
+        return await response.json();
     }
 };

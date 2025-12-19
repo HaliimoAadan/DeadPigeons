@@ -23,7 +23,7 @@ const jsonHeaders = {
 
 export const playersApi = {
     async getAll(onlyActive?: boolean): Promise<PlayerResponseDto[]> {
-        const url = new URL(`${baseUrl}/api/Players`);
+        const url = new URL(`${baseUrl}/api/player`);
         if (onlyActive) url.searchParams.set("onlyActive", "true");
 
         const response = await customFetch.fetch(url.toString(), {
@@ -42,19 +42,35 @@ export const playersApi = {
         return[];
     },
 
-    async create(dto: PlayerCreateDto): Promise<PlayerResponseDto> {
-        const response = await customFetch.fetch(`${baseUrl}/api/Players`, {
-            method: "POST",
-            headers: jsonHeaders,
-            body: JSON.stringify(dto)
-        });
+        async create(dto: PlayerCreateDto): Promise<PlayerResponseDto> {
+            const payload: PlayerCreateDto = {
+                fullName: (dto.fullName ?? "").trim(),
+                email: (dto.email ?? "").trim(),
+                phoneNumber: (dto.phoneNumber ?? "").trim(),
+                isActive: dto.isActive ?? true,
+            };
 
-        if (!response.ok) throw new Error("Failed to create player");
-        return await response.json() as PlayerResponseDto;
+            const response = await customFetch.fetch(`${baseUrl}/api/player`, {
+                method: "POST",
+                headers: jsonHeaders,
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errText = await response.text().catch(() => "");
+                console.error("Create player failed:", response.status, errText);
+                throw new Error("Could not create player.");
+            }
+
+            const data: any = await response.json();
+
+            // If backend returns { playerId, fullName, ... } you're good.
+            // If backend returns firstName/lastName, you’ll see it here in console.
+            return data as PlayerResponseDto;
     },
 
     async updateStatus(playerId: string, isActive: boolean): Promise<void> {
-        const response = await customFetch.fetch(`${baseUrl}/api/Players/${playerId}/status?isActive=${isActive}`, {
+        const response = await customFetch.fetch(`${baseUrl}/api/player/${playerId}/status?isActive=${isActive}`, {
             method: "PATCH",
             headers: {
                 "Accept": "application/json"
