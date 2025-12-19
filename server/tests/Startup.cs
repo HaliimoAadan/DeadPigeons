@@ -1,4 +1,5 @@
 using api;
+using api.Etc;
 using efscaffold;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,5 +32,6 @@ public class Startup
         services.RemoveAll<TimeProvider>();
         var fakeTime = new FakeTimeProvider();
         services.AddSingleton<TimeProvider>(fakeTime);
+        services.AddScoped<ISeeder, Seeder>();
     }
 }

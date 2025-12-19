@@ -1,9 +1,9 @@
 using api.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyDbContext = efscaffold.MyDbContext;
 using api.Models.Requests;
 using api.Models.Response;
+using efscaffold;
 using efscaffold.Entities;
 using PasswordHasher = api.Etc.PasswordHasher;
 
@@ -67,5 +67,4 @@ public class AuthController : ControllerBase
         var token = JwtHelper.GenerateToken(player.PlayerId.ToString(), secret);
         return Ok(new JwtResponseDto(token));
     }
-
 }

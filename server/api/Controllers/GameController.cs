@@ -40,9 +40,10 @@ public class GameController : ControllerBase
         var game = new Game
         {
             GameId = Guid.NewGuid(),
+            WinningNumbers = null,
+            DrawDate = null,
             ExpirationDate = dto?.ExpirationDate ?? DateTime.UtcNow.AddYears(20),
         };
-
 
         _dbContext.Games.Add(game);
         await _dbContext.SaveChangesAsync();

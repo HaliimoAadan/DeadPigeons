@@ -6,6 +6,7 @@ using efscaffold.Entities;
 using api.Models.Requests;
 using api.Services;
 
+using efscaffold.Entities;
 
 namespace api.Controllers;
 

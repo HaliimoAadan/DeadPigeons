@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyDbContext = efscaffold.MyDbContext;
 using api.Models;
+using api.Services;
 using efscaffold.Entities;
 
 namespace api.Controllers;
@@ -10,11 +11,13 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class WinningBoardController : ControllerBase
 {
+    private readonly IWinningBoardService _winningBoardService;
     private readonly MyDbContext _dbContext;
 
-    public WinningBoardController(MyDbContext dbContext)
+    public WinningBoardController(MyDbContext dbContext, IWinningBoardService winningBoardService)
     {
         _dbContext = dbContext;
+        _winningBoardService = winningBoardService;
     }
 
     [HttpGet]
@@ -67,5 +70,33 @@ public class WinningBoardController : ControllerBase
         _dbContext.Winningboards.Remove(board);
         await _dbContext.SaveChangesAsync();
         return NoContent();
+    }
+    
+    [HttpPost("{gameId:guid}/compute-winningboards")]
+    public async Task<IActionResult> ComputeWinningBoards(Guid gameId)
+    {
+        try
+        {
+            var results = await _winningBoardService.ComputeWinningBoardsAsync(gameId);
+            return Ok(results);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { ex.Message });
+        }
+    }
+    
+    [HttpPost("{boardId:guid}/check")]
+    public async Task<IActionResult> CheckBoard(Guid boardId)
+    {
+        try
+        {
+            var result = await _winningBoardService.CheckAndCreateWinningBoardAsync(boardId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { ex.Message });
+        }
     }
 }

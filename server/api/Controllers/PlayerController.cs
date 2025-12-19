@@ -1,15 +1,17 @@
 using api.Helpers;
+using api.Models.Response;
 using api.Models;
-//using api.Models.Response;
 using efscaffold;
 using efscaffold.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyDbContext = efscaffold.MyDbContext;
+using efscaffold.Entities;
 
 namespace api.Controllers;
 
 [ApiController]
-[Route("api/player")] // IMPORTANT: fara [controller]
+[Route("api/player")]
 public class PlayerController : ControllerBase
 {
     private readonly MyDbContext _db;
@@ -191,5 +193,4 @@ public class PlayerController : ControllerBase
             IsActive = player.IsActive
         });
     }
-
 }
