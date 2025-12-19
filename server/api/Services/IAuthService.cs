@@ -1,12 +1,12 @@
-/*using api.Models;
+using api.Models;
 using api.Models.Requests;
-
-namespace api.Services;
+using efscaffold.Entities;
 
 public interface IAuthService
-{
-    Task<JwtClaims> VerifyAndDecodeToken(string? token);
-
-    Task<JwtResponse> Login(LoginRequestDto dto);
-    Task<JwtResponse> Register(RegisterRequestDto dto);
-}*/
+   {
+       Task<JwtClaims> VerifyAndDecodeToken(string? token);
+       Task<JwtResponse> Login(LoginRequestDto dto);
+       Task<JwtResponse> RegisterPlayer(RegisterRequestDto dto);
+       Task<JwtResponse> RegisterAdmin(Admin admin);
+   }
+   

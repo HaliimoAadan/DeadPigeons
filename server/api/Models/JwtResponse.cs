@@ -1,6 +1,5 @@
-namespace api.Models;
-
-public record JwtResponse(string Token)
+public class JwtResponse
 {
-    public string Token { get; set; } = Token;
+    public string Token { get; set; }
+    public JwtResponse(string token) => Token = token;
 }

@@ -9,4 +9,6 @@ public interface IWinningBoardService
     Task<IEnumerable<Winningboard>> GetAllAsync();
     Task<Winningboard?> UpdateAsync(Winningboard wb);
     Task<bool> DeleteAsync(Guid id);
+    Task<Winningboard> CheckAndCreateWinningBoardAsync(Guid boardId);
+    Task<List<Winningboard>> ComputeWinningBoardsAsync(Guid gameId);
 }

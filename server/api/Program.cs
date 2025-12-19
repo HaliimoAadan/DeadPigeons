@@ -48,7 +48,7 @@ public class Program
         });
 
         services.AddCors();
-        //services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPlayerService, PlayerService>();
         services.AddScoped<IGameService, GameService>();
         services.AddScoped<IBoardService, BoardService>();
@@ -136,7 +136,7 @@ public class Program
 
         if (app.Environment.IsDevelopment())
             using (var scope = app.Services.CreateScope())
-            {
+            { 
                // scope.ServiceProvider.GetRequiredService<ISeeder>().Seed().GetAwaiter().GetResult();
             }
 
