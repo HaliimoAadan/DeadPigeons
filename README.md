@@ -18,7 +18,9 @@ This diagram illustrates the overall workflow and business logic of the system:
 - Weekly game lifecycle
 - Entering winning numbers and closing games
 
+<img width="1051" height="707" alt="image" src="https://github.com/user-attachments/assets/adc3aa8a-fb41-49ee-b5e7-5c9784a4eec1" />
 ![Workflow Diagram](docs/workflow-diagram.jpg)
+
 
 ---
 
@@ -141,6 +143,9 @@ A player’s balance is calculated as:
 Sum of approved deposit transactions minus the total cost of purchased boards.
 
 ![Database Diagram](docs/database-diagram.jpg)
+<img width="471" height="780" alt="image" src="https://github.com/user-attachments/assets/f6744444-b3b3-42b2-bf75-af2bc573b229" />
+
+
 
 
 ---
