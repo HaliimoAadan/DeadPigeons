@@ -1,5 +1,6 @@
 import {baseUrl} from "@core/baseUrl.ts";
 import {customFetch} from "@utilities/customFetch.ts";
+import { resolvePreservedArray } from "@utilities/preserveJson.ts";
 
 export type PlayerCreateDto = {
     fullName: string;
@@ -23,7 +24,7 @@ const jsonHeaders = {
 
 export const playersApi = {
     async getAll(onlyActive?: boolean): Promise<PlayerResponseDto[]> {
-        const url = new URL(`${baseUrl}/api/player`);
+        const url = new URL(`${baseUrl}/api/Player`);
         if (onlyActive) url.searchParams.set("onlyActive", "true");
 
         const response = await customFetch.fetch(url.toString(), {
@@ -33,44 +34,31 @@ export const playersApi = {
 
         if (!response.ok) throw new Error("Failed to fetch players");
 
-        const data: any = await response.json();
-
-        // Handles both normal arrays and EF "$values" shape
-        if (Array.isArray(data)) return data as PlayerResponseDto[];
-        if (data && Array.isArray(data.$values)) return data.$values as PlayerResponseDto[];
-
-        return[];
+        const raw = await response.json();
+        return resolvePreservedArray<PlayerResponseDto>(raw);
     },
 
-        async create(dto: PlayerCreateDto): Promise<PlayerResponseDto> {
-            const payload: PlayerCreateDto = {
-                fullName: (dto.fullName ?? "").trim(),
-                email: (dto.email ?? "").trim(),
-                phoneNumber: (dto.phoneNumber ?? "").trim(),
-                isActive: dto.isActive ?? true,
-            };
+    async create(dto: PlayerCreateDto): Promise<PlayerResponseDto> {
+        const payload: PlayerCreateDto = {
+            fullName: (dto.fullName ?? "").trim(),
+            email: (dto.email ?? "").trim(),
+            phoneNumber: (dto.phoneNumber ?? "").trim(),
+            isActive: dto.isActive ?? true,
+        };
 
-            const response = await customFetch.fetch(`${baseUrl}/api/player`, {
+            const response = await customFetch.fetch(`${baseUrl}/api/Player`, {
                 method: "POST",
                 headers: jsonHeaders,
                 body: JSON.stringify(payload),
             });
 
-            if (!response.ok) {
-                const errText = await response.text().catch(() => "");
-                console.error("Create player failed:", response.status, errText);
-                throw new Error("Could not create player.");
-            }
-
-            const data: any = await response.json();
-
-            // If backend returns { playerId, fullName, ... } you're good.
-            // If backend returns firstName/lastName, you’ll see it here in console.
-            return data as PlayerResponseDto;
+            if (!response.ok) throw new Error("Could not create player.");
+            
+        return (await response.json()) as PlayerResponseDto;
     },
 
     async updateStatus(playerId: string, isActive: boolean): Promise<void> {
-        const response = await customFetch.fetch(`${baseUrl}/api/player/${playerId}/status?isActive=${isActive}`, {
+        const response = await customFetch.fetch(`${baseUrl}/api/Player/${playerId}/status?isActive=${isActive}`, {
             method: "PATCH",
             headers: {
                 "Accept": "application/json"

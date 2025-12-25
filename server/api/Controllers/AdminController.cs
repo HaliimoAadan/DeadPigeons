@@ -5,6 +5,7 @@ using MyDbContext = efscaffold.MyDbContext;
 using api.Models.Requests;
 using api.Models.Response;
 using api.Models;
+using api.Services;
 using efscaffold.Entities;
 using PasswordHasher = api.Etc.PasswordHasher;
 using PlayerResponseDto = api.Models.PlayerResponseDto;
@@ -16,11 +17,18 @@ namespace api.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly MyDbContext _dbContext;
-
-    public AdminController(MyDbContext dbContext)
+    private readonly IWinningBoardService _winningBoardService;
+    
+    public AdminController(MyDbContext dbContext, IWinningBoardService winningBoardService)
     {
+        if (dbContext == null) throw new ArgumentNullException(nameof(dbContext));
+        if (winningBoardService == null) throw new ArgumentNullException(nameof(winningBoardService));
+
         _dbContext = dbContext;
-    }
+        _winningBoardService = winningBoardService;
+
+
+}
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -214,7 +222,10 @@ public class AdminController : ControllerBase
 
         await _dbContext.SaveChangesAsync();
 
-        return Ok(new { game.GameId, game.WinningNumbers });
+        // Compute and persist winners for this game (idempotent inside the service)
+        var winningBoards = await _winningBoardService.ComputeWinningBoardsAsync(game.GameId);
+
+        return Ok(new { game.GameId, game.WinningNumbers, WinnersCreated = winningBoards.Count });
     }
 
     [HttpGet("games/{gameId:guid}/payout-overview")]
@@ -237,22 +248,27 @@ public async Task<ActionResult<AdminPayoutOverviewResponseDto>> GetPayoutOvervie
     if (!gameExists) return NotFound("Game not found");
 
     // 2) Pool = sum of board prices for this game
-    var totalPrizePool = await _dbContext.Boards
-        .Where(b => b.GameId == gameId)
-        .SumAsync(b => (decimal?)b.Price) ?? 0m;
+    var boardsQuery = _dbContext.Boards.Where(b =>
+        b.GameId == gameId || b.RepeatUntilGameId == gameId
+    );
 
+    var totalPrizePool = await boardsQuery
+        .SumAsync(b => (decimal?)b.Price) ?? 0m;
+    
     // 3) Total players = distinct players who bought boards in this game
-    var totalPlayers = await _dbContext.Boards
-        .Where(b => b.GameId == gameId)
+    var totalPlayers = await boardsQuery
         .Select(b => b.PlayerId)
         .Distinct()
         .CountAsync();
 
     // 4) Winners (distinct by BoardId)
     var winnersRaw = await _dbContext.Winningboards
-        .Where(w => w.GameId == gameId)
         .Include(w => w.Board)
             .ThenInclude(b => b.Player)
+        .Where(w =>
+            w.Board != null &&
+            (w.Board.GameId == gameId || w.Board.RepeatUntilGameId == gameId)
+        )
         .ToListAsync();
 
     var winnersDistinct = winnersRaw

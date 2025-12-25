@@ -1,6 +1,7 @@
 using efscaffold;
 using efscaffold.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace api.Services;
 
@@ -71,9 +72,7 @@ public class WinningBoardService : IWinningBoardService
 
     public async Task<List<Winningboard>> ComputeWinningBoardsAsync(Guid gameId)
     {
-        var game = await _db.Games
-            .Include(g => g.BoardGames)
-            .FirstOrDefaultAsync(g => g.GameId == gameId);
+        var game = await _db.Games.FirstOrDefaultAsync(g => g.GameId == gameId);
 
         if (game == null)
             throw new Exception("Game not found");
@@ -81,13 +80,27 @@ public class WinningBoardService : IWinningBoardService
         if (game.WinningNumbers == null || game.WinningNumbers.Count != 3)
             throw new Exception("Winning numbers not set for this game");
 
+        // Clear any previous winners for idempotency before recomputing
+        var existingForGame = await _db.Winningboards
+            .Where(w => w.GameId == gameId)
+            .ToListAsync();
+
+        if (existingForGame.Any())
+        {
+            _db.Winningboards.RemoveRange(existingForGame);
+        }
+
+        var boards = await _db.Boards
+            .Where(b => b.GameId == gameId || b.RepeatUntilGameId == gameId)
+            .ToListAsync();
+        
         var winningBoards = new List<Winningboard>();
 
-        foreach (var board in game.BoardGames)
+        foreach (var board in boards)
         {
             var matchedNumbers = board.ChosenNumbers.Intersect(game.WinningNumbers).Count();
 
-            if (matchedNumbers == 3) 
+            if (matchedNumbers == game.WinningNumbers.Count) 
             {
                 var winningBoard = new Winningboard
                 {

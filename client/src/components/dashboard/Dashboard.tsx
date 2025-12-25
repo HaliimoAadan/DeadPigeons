@@ -24,6 +24,7 @@ export default function Dashboard() {
         localStorage.removeItem("jwt");
         localStorage.removeItem("userRole");
         localStorage.removeItem("userName")
+        localStorage.removeItem("playerId");
         navigate("/auth");
     };
 

@@ -1,5 +1,6 @@
 import {baseUrl} from "@core/baseUrl.ts";
 import {customFetch} from "@utilities/customFetch.ts";
+import {asArray} from "@utilities/jsonNormalize.ts";
 
 export type AdminWinnerLine = {
     winningboardId: string;
@@ -49,6 +50,10 @@ export const adminApi = {
 
         if (!response.ok) throw new Error("Failed to fetch payout overview");
 
-        return await response.json() as AdminPayoutOverview;
+        const overview = await response.json() as AdminPayoutOverview;
+        return {
+            ...overview,
+            winners: asArray<AdminWinnerLine>(overview?.winners)
+        };
     }
 };

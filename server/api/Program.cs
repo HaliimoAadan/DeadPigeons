@@ -6,10 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using NSwag;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using NSwag;
 using Scalar.AspNetCore;
 using Sieve.Models;
 using Sieve.Services;
@@ -26,7 +23,7 @@ public class Program
         services.AddMyDbContext(configuration);
         services.AddControllers().AddJsonOptions(opts =>
         {
-            opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+            opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             opts.JsonSerializerOptions.MaxDepth = 128;
         });
         
@@ -74,12 +71,11 @@ public class Program
     public static void Main(string[]? args = null)
     {
         DotNetEnv.Env.Load();
-
-        var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(args ?? Array.Empty<string>());
         
        // var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-           // builder.Services.AddDbContext<MyDbContext>(options =>
+          //  builder.Services.AddDbContext<MyDbContext>(options =>
             //{
               //  options.UseNpgsql(connectionString);
             //});

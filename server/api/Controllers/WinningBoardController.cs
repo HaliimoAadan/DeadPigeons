@@ -23,16 +23,40 @@ public class WinningBoardController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var boards = await _dbContext.Winningboards.ToListAsync();
-        return Ok(boards);
+        var winners = await _dbContext.Winningboards
+            .Include(w => w.Board)
+            .ThenInclude(b => b.Player)
+            .Include(w => w.Game)
+            .ToListAsync();
+
+        return Ok(winners);
     }
 
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> Get(Guid id)
+    [HttpGet("by-game/{gameId:guid}")]
+    public async Task<IActionResult> GetByGame(Guid gameId)
     {
-        var board = await _dbContext.Winningboards.FindAsync(id);
-        if (board == null) return NotFound();
-        return Ok(board);
+        var winners = await _dbContext.Winningboards
+            .Where(w => w.GameId == gameId && w.WinningNumbersMatched == 3)
+            .Include(w => w.Board)
+            .ThenInclude(b => b.Player)
+            .ToListAsync();
+
+        // return a clean DTO so the frontend doesn’t deal with circular graphs
+        var dto = winners.Select(w => new {
+            w.WinningboardId,
+            w.GameId,
+            w.BoardId,
+            w.WinningNumbersMatched,
+            w.Timestamp,
+            Player = new {
+                w.Board.Player.PlayerId,
+                w.Board.Player.Email,
+                w.Board.Player.FirstName,
+                w.Board.Player.LastName
+            }
+        });
+
+        return Ok(dto);
     }
 
     [HttpPost]
@@ -43,7 +67,8 @@ public class WinningBoardController : ControllerBase
 
         _dbContext.Winningboards.Add(board);
         await _dbContext.SaveChangesAsync();
-        return CreatedAtAction(nameof(Get), new { id = board.WinningboardId }, board);
+        return Ok (board);
+        
     }
 
     [HttpPut("{id:guid}")]

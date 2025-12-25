@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { adminApi, type AdminPayoutOverview } from "@utilities/adminApi.ts";
-import { gamesApi, type GameDto } from "@utilities/gamesApi.ts";
-import { playersApi, type PlayerResponseDto } from "@utilities/playersApi.ts";
+import { gamesApi, type GameDto } from "@utilities/gamesApi";
+import {adminApi} from "@utilities/adminApi.ts";
 
 function formatCurrency(amount?: number | null) {
     if (amount === undefined || amount === null) return "0.00";
-    return amount.toLocaleString("da-DK", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
+    return amount.toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function formatDateShort(dateStr?: string | null) {
@@ -19,40 +15,64 @@ function formatDateShort(dateStr?: string | null) {
     return d.toLocaleDateString();
 }
 
+type UiWinnerLine = {
+    winningboardId: string;
+    boardId: string;
+    playerId: string;
+    playerName: string;
+    winningNumbersMatched: number;
+    timestamp: string;
+    payout: number;
+};
+
 export default function AdminGameHistoryPage() {
+
+    const [overview, setOverview] = useState<{
+        gameId: string;
+        winnerCount: number;
+        totalPlayers: number;
+        totalPrizePool: number;
+        payoutPerWinner: number;
+        profit30Percent: number;
+        winnersPool70Percent: number;
+        remainder: number;
+        winners: UiWinnerLine[];
+    } | null>(null);
+    
     const [games, setGames] = useState<GameDto[]>([]);
     const [selectedGameId, setSelectedGameId] = useState<string>("");
-    const [overview, setOverview] = useState<AdminPayoutOverview | null>(null);
-    const [players, setPlayers] = useState<PlayerResponseDto[]>([]);
     const [loading, setLoading] = useState(true);
-    const [loadingOverview, setLoadingOverview] = useState(false);
+
+    // one function used by both dropdown + default selection
+    const loadResults = async (gameId: string) => {
+        try {
+            const overview = await adminApi.getPayoutOverview(gameId);
+            setOverview(overview);
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to load payout overview");
+            setOverview(null);
+        }
+    };
 
     useEffect(() => {
         const load = async () => {
             setLoading(true);
             try {
-                const [gamesResponse, playersResponse] = await Promise.all([
-                    gamesApi.getAll(),
-                    playersApi.getAll(),
-                ]);
-
+                const [gamesResponse] = await Promise.all([gamesApi.getAll()]);
                 const nextGames = Array.isArray(gamesResponse) ? gamesResponse : [];
-                const nextPlayers = Array.isArray(playersResponse) ? playersResponse : [];
-
                 setGames(nextGames);
-                setPlayers(nextPlayers);
 
-                // Prefer most recent completed game, otherwise most recent game
                 const sorted = [...nextGames].sort(
                     (a, b) => new Date(b.expirationDate).getTime() - new Date(a.expirationDate).getTime()
                 );
 
-                const completed = sorted.find((g) => (g.winningNumbers?.length ?? 0) >= 3);
-                const fallback = completed ?? sorted[0];
+                const latest = sorted[0] ?? null;
 
-                if (fallback?.gameId) {
-                    setSelectedGameId(fallback.gameId);
-                    await loadOverview(fallback.gameId);
+                if (latest?.gameId) {
+                    setSelectedGameId(latest.gameId);
+                    await loadResults(latest.gameId);
+                    
                 } else {
                     setSelectedGameId("");
                     setOverview(null);
@@ -67,36 +87,18 @@ export default function AdminGameHistoryPage() {
 
         void load();
     }, []);
-
-    const loadOverview = async (gameId: string) => {
-        setLoadingOverview(true);
-        try {
-            const response = await adminApi.getPayoutOverview(gameId);
-            setOverview(response);
-        } catch (error) {
-            console.error(error);
-            toast.error("Could not load game results.");
-            setOverview(null);
-        } finally {
-            setLoadingOverview(false);
-        }
-    };
-
+    
     const selectedGame = useMemo(
         () => games.find((g) => g.gameId === selectedGameId) ?? null,
         [games, selectedGameId]
     );
-
-    const playerLookup = useMemo(() => {
-        const map = new Map<string, PlayerResponseDto>();
-        players.forEach((p) => map.set(p.playerId, p));
-        return map;
-    }, [players]);
+    
 
     const gameStatus = useMemo(() => {
         if (!selectedGame) return "No game selected";
         const hasNumbers = (selectedGame.winningNumbers?.length ?? 0) >= 3;
         const isExpired = new Date(selectedGame.expirationDate) < new Date();
+   
         if (!hasNumbers) return "Waiting for winning numbers";
         return isExpired ? "Game completed" : "Results published";
     }, [selectedGame]);
@@ -112,9 +114,10 @@ export default function AdminGameHistoryPage() {
         [overview]
     );
 
+    const winners = overview?.winners ?? [];
+
     return (
         <section className="space-y-6">
-            {/* Header */}
             <div>
                 <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Weekly overview</p>
 
@@ -122,12 +125,10 @@ export default function AdminGameHistoryPage() {
                     <div>
                         <h2 className="text-3xl font-semibold text-slate-900">Game History</h2>
                         <p className="mt-2 max-w-3xl text-slate-600">
-                            Review results, prize splits, and winners for completed games. All amounts come directly from backend
-                            calculations.
+                            Review results, prize splits, and winners for completed games.
                         </p>
                     </div>
 
-                    {/* Game picker (same style as your other inputs) */}
                     <div className="flex w-full flex-col gap-2 md:w-80">
                         <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
                             Select game
@@ -136,8 +137,9 @@ export default function AdminGameHistoryPage() {
                                 onChange={(event) => {
                                     const nextId = event.target.value;
                                     setSelectedGameId(nextId);
-                                    if (nextId) void loadOverview(nextId);
-                                }}
+                                    if (nextId) {
+                                        void loadResults(nextId);
+                                    }                                }}
                                 disabled={loading || games.length === 0}
                                 className="rounded-2xl border border-orange-100 bg-white px-4 py-3 text-sm shadow-inner focus:border-orange-300 focus:outline-none disabled:opacity-60"
                             >
@@ -169,37 +171,30 @@ export default function AdminGameHistoryPage() {
                 </div>
             </div>
 
-            {/* Stats cards */}
             <div className="grid gap-4 md:grid-cols-5">
                 {stats.map((stat) => (
                     <article key={stat.label} className="rounded-3xl bg-white/80 p-5 text-center shadow-lg shadow-orange-100">
                         <p className="text-xs uppercase tracking-wide text-slate-400">{stat.label}</p>
-                        <p className="mt-2 text-2xl font-semibold text-slate-900">{loadingOverview ? "…" : stat.value}</p>
+                        <p className="mt-2 text-2xl font-semibold text-slate-900">{stat.value}</p>
                     </article>
                 ))}
             </div>
 
-            {/* Winners */}
             <article className="space-y-4 rounded-3xl bg-white/80 p-6 shadow-lg shadow-orange-100">
                 <div>
                     <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Winning players</p>
                     <h3 className="text-2xl font-semibold text-slate-900">Payout overview</h3>
-                    <p className="text-sm text-slate-500">All amounts are already split in the backend.</p>
                 </div>
-
-                {loadingOverview && <p className="text-slate-500">Loading results…</p>}
-
-                {!loadingOverview && (!overview || !selectedGameId) && (
-                    <p className="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-slate-600">
-                        Select a game to see results.
-                    </p>
+                
+                {(!overview || !selectedGameId) && (
+                    <p className="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-slate-600">Select a game to see results.</p>
                 )}
 
-                {!loadingOverview && overview && overview.winners.length === 0 && (
+                {overview && winners.length === 0 && (
                     <p className="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-slate-600">No winners this round.</p>
                 )}
 
-                {!loadingOverview && overview && overview.winners.length > 0 && (
+                {overview && winners.length > 0 && (
                     <div className="overflow-x-auto rounded-2xl bg-white/90 p-2 shadow-inner">
                         <table className="min-w-full divide-y divide-orange-100 text-left text-sm">
                             <thead className="bg-[#fef7ef] text-xs uppercase tracking-wide text-slate-500">
@@ -211,10 +206,9 @@ export default function AdminGameHistoryPage() {
                             </tr>
                             </thead>
                             <tbody className="divide-y divide-orange-50">
-                            {overview.winners.map((winner) => {
-                                const player = playerLookup.get(winner.playerId);
-                                const name = winner.playerName?.trim() || player?.fullName || winner.playerId;
-                                const email = player?.email ?? "—";
+                            {winners.map((winner: any) => {
+                                const name = winner.playerName || "Unknown";
+                                const email = "—";
 
                                 return (
                                     <tr key={winner.winningboardId} className="transition hover:bg-[#fff8f0]">

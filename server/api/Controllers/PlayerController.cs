@@ -6,7 +6,6 @@ using efscaffold.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyDbContext = efscaffold.MyDbContext;
-using efscaffold.Entities;
 
 namespace api.Controllers;
 

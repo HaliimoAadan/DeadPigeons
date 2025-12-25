@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MyDbContext = efscaffold.MyDbContext;
 using api.Models;
 using api.Models.Requests;
+using api.Services;
 using efscaffold.Entities;
 
 namespace api.Controllers;
@@ -13,10 +14,12 @@ namespace api.Controllers;
 public class GameController : ControllerBase
 {
     private readonly MyDbContext _dbContext;
+    private readonly IWinningBoardService _winningBoardService;
 
-    public GameController(MyDbContext dbContext)
+    public GameController(MyDbContext dbContext, IWinningBoardService winningBoardService)
     {
         _dbContext = dbContext;
+        _winningBoardService = winningBoardService;
     }
 
     [HttpGet]
@@ -33,16 +36,27 @@ public class GameController : ControllerBase
         if (game == null) return NotFound();
         return Ok(game);
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateGameDto dto)
     {
+
+        if (!ModelState.IsValid || dto is null)
+            return BadRequest("ExpirationDate is required.");
+
+        // Normalize to UTC and guard against past dates
+        var requestedExpiration = DateTime.SpecifyKind(dto.ExpirationDate, DateTimeKind.Utc);
+        var minimumExpiration = DateTime.UtcNow.AddMinutes(5);
+        var expiration = requestedExpiration > DateTime.UtcNow
+            ? requestedExpiration
+            : minimumExpiration;
+
         var game = new Game
         {
             GameId = Guid.NewGuid(),
             WinningNumbers = null,
             DrawDate = null,
-            ExpirationDate = dto?.ExpirationDate ?? DateTime.UtcNow.AddYears(20),
+            ExpirationDate = expiration,
         };
 
         _dbContext.Games.Add(game);
@@ -79,7 +93,7 @@ public class GameController : ControllerBase
         await _dbContext.SaveChangesAsync();
         return NoContent();
     }
-    
+
     [HttpPost("{gameId:guid}/publish-winning-numbers")]
     public async Task<IActionResult> PublishWinningNumbers(Guid gameId, [FromBody] WinningNumbersDto dto)
     {
@@ -111,6 +125,8 @@ public class GameController : ControllerBase
 
         await _dbContext.SaveChangesAsync();
 
-        return Ok(new { game.GameId, game.WinningNumbers });
+        var winningBoards = await _winningBoardService.ComputeWinningBoardsAsync(game.GameId);
+
+        return Ok(new { game.GameId, game.WinningNumbers, WinnersCreated = winningBoards.Count });
     }
 }

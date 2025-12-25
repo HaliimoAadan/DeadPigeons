@@ -114,15 +114,24 @@ export default function AdminDashboardPage() {
     
     return (
         <section className="space-y-6">
-            <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Overview</p>
-                <h2 className="text-3xl font-semibold text-slate-900">Admin's Dashboard</h2>
-                <p className="mt-2 max-w-3xl text-slate-600">
-                    Keep tabs on Jerne IF's Dead Pigeons game before entering the weekly results. These widgets summarize the
-                    operations you need to take care of before the Saturday deadline.
-                </p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Overview</p>
+                    <h2 className="text-3xl font-semibold text-slate-900">Admin's Dashboard</h2>
+                    <p className="mt-2 max-w-3xl text-slate-600">
+                        Keep tabs on Jerne IF's Dead Pigeons game before entering the weekly results. These widgets summarize the
+                        operations you need to take care of before the Saturday deadline.
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => navigate("/admin/game-history")}
+                    className="rounded-full bg-[#f7a166] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-200"
+                >
+                    View game history
+                </button>
             </div>
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
                 {[{
                     label: "Total players",
                     value: stats.totalPlayers
@@ -138,14 +147,18 @@ export default function AdminDashboardPage() {
                     helper: stats.gameState === "Running (ends Saturday)" ? "Game ends Saturday" : undefined
                 }].map((stat) => (
 
-                    <article key={stat.label}
-                             className="rounded-3xl bg-white/80 p-5 text-center shadow-lg shadow-orange-100">
+                    <article
+                        key={stat.label}
+                        className="flex min-h-[96px] flex-col items-center justify-center gap-1 rounded-3xl bg-white/90 px-4 py-3 text-center shadow-lg shadow-orange-100"
+                    >
                         <p className="text-xs uppercase tracking-wide text-slate-400">{stat.label}</p>
-                        <p className="mt-2 text-3xl font-semibold text-slate-900">
+                        <p
+                            className={`font-semibold leading-tight text-slate-900 ${typeof stat.value === "number" ? "text-2xl" : "text-base"}`}
+                        >                           
                             {loading ? "…" : stat.value}
                         </p>
                         {stat.helper && !loading && (
-                            <p className="mt-1 text-xs text-slate-500">{stat.helper}</p>
+                            <p className="text-xs text-slate-500">{stat.helper}</p>
                         )}
                     </article>
                 ))}

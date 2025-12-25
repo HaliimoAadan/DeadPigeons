@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyDbContext = efscaffold.MyDbContext;
 using api.Models;
-using efscaffold.Entities; 
 using api.Models.Requests;
 using api.Services;
 
