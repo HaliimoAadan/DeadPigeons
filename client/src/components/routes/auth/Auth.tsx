@@ -71,6 +71,25 @@ export default function Auth() {
             localStorage.setItem("userRole", role);
             localStorage.setItem("userName", credentials.email);
 
+            // if player login, store playerId returned from backend
+            const bodyText = response?.data ? await response.data.text() : null;
+            const body = bodyText ? JSON.parse(bodyText) : null;
+
+            if (role === "player" && body?.playerId) {
+                localStorage.setItem("playerId", body.playerId);
+            } else if (role === "player") {
+                // if backend still not returning it, at least don’t leave stale values
+                localStorage.removeItem("playerId");
+            }
+
+            const rawToken = formattedToken.replace(/^Bearer\s+/i, "");
+            const payload = JSON.parse(atob(rawToken.split(".")[1]));
+
+            const playerId =
+                payload.sub || payload.id || payload.nameid || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+
+            if (playerId) localStorage.setItem("playerId", String(playerId));
+
             setCurrentUser({
                 name: credentials.email,
                 role,

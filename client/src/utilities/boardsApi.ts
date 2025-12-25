@@ -38,6 +38,24 @@ function normalizeArray<T>(data: unknown): T[] {
     return [];
 }
 
+function normalizeNumbers(raw: unknown): number[] {
+    if (Array.isArray(raw)) return raw.map(Number);
+    if (raw && typeof raw === "object" && Array.isArray((raw as any).$values)) {
+        return (raw as any).$values.map(Number);
+    }
+    if (typeof raw === "string") {
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed.map(Number);
+        } catch {}
+        return raw
+            .split(/[\s,]+/)
+            .map((value) => Number(value))
+            .filter(Number.isFinite);
+    }
+    return [];
+}
+
 export const boardsApi = {
     async list(): Promise<BoardDto[]> {
         const response = await customFetch.fetch(`${baseUrl}/api/Board`, {
@@ -48,7 +66,10 @@ export const boardsApi = {
         if (!response.ok) throw new Error("Failed to fetch boards");
 
         const data: unknown = await response.json();
-        return normalizeArray<BoardDto>(data);
+        return normalizeArray<BoardDto>(data).map((board) => ({
+            ...board,
+            chosenNumbers: normalizeNumbers((board as any).chosenNumbers)
+        }));
     },
 
     async purchase(playerId: string, payload: PurchaseBoardRequest): Promise<BoardDto> {

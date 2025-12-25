@@ -28,7 +28,8 @@ export default function PlayerDepositPage() {
         setLastResult(null);
 
         try {
-            if (!playerId) {
+            const trimmedId = playerId.trim();
+            if (!trimmedId) {
                 toast.error("Player ID is required");
                 return;
             }
@@ -38,9 +39,9 @@ export default function PlayerDepositPage() {
                 amount: Number(form.amount)
             };
 
-            const response = await transactionsApi.submit(playerId, dto);
+            const response = await transactionsApi.submit(trimmedId, dto);
             setLastResult(response);
-            localStorage.setItem("playerId", playerId);
+            localStorage.setItem("playerId", trimmedId);
             toast.success("Deposit submitted for review.");
             setForm(defaultDto);
         } catch (error) {

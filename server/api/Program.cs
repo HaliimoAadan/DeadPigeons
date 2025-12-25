@@ -4,6 +4,7 @@ using api.Helpers;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using NSwag;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,11 @@ namespace api;
 
 public class Program
 {
-    public static void ConfigureServices(IServiceCollection services)
+    public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(TimeProvider.System);
         services.InjectAppOptions();
-        services.AddMyDbContext();
+        services.AddMyDbContext(configuration);
         services.AddControllers().AddJsonOptions(opts =>
         {
             opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
@@ -70,20 +71,20 @@ public class Program
      //   services.AddScoped<ISieveProcessor, ApplicationSieveProcessor>();
     }
 
-    public static void Main()
+    public static void Main(string[]? args = null)
     {
         DotNetEnv.Env.Load();
 
-        var builder = WebApplication.CreateBuilder();
+        var builder = WebApplication.CreateBuilder(args);
         
-        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+       // var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-            builder.Services.AddDbContext<MyDbContext>(options =>
-            {
-                options.UseNpgsql(connectionString);
-            });
+           // builder.Services.AddDbContext<MyDbContext>(options =>
+            //{
+              //  options.UseNpgsql(connectionString);
+            //});
             
-        ConfigureServices(builder.Services);
+        ConfigureServices(builder.Services, builder.Configuration);
         var app = builder.Build();
         app.UseExceptionHandler(config => { });
         app.UseOpenApi();

@@ -65,6 +65,12 @@ public class AuthController : ControllerBase
             return Unauthorized("Invalid credentials");
 
         var token = JwtHelper.GenerateToken(player.PlayerId.ToString(), secret);
-        return Ok(new JwtResponseDto(token));
+        return Ok(new
+        {
+            Token = token,
+            Role = "player",
+            PlayerId = player.PlayerId.ToString()
+
+        });
     }
 }

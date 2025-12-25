@@ -18,6 +18,12 @@ export default function PlayerHistoryPage() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        const stored = localStorage.getItem("playerId") ?? "";
+        const trimmed = stored.trim();
+        if (trimmed && trimmed !== playerId) setPlayerId(trimmed);
+    }, []);
+
+    useEffect(() => {
         const loadStatic = async () => {
             try {
                 const response = await gamesApi.getAll();
@@ -32,7 +38,8 @@ export default function PlayerHistoryPage() {
     }, []);
 
     const refreshBoards = async (id: string) => {
-        if (!id) return;
+        const trimmedId = id.trim();
+        if (!trimmedId) return;
         setLoading(true);
         try {
             const [boardsResponse, winningResponse] = await Promise.all([
@@ -40,10 +47,11 @@ export default function PlayerHistoryPage() {
                 winningBoardsApi.list()
             ]);
 
-            const playerBoards = (Array.isArray(boardsResponse) ? boardsResponse : []).filter((board) => board.playerId === id);
+            const playerBoards = (Array.isArray(boardsResponse) ? boardsResponse : []).filter((board) => board.playerId === trimmedId);
             setBoards(playerBoards);
             setWinningBoards(Array.isArray(winningResponse) ? winningResponse : []);
-            localStorage.setItem("playerId", id);
+            localStorage.setItem("playerId", trimmedId);
+            setPlayerId(trimmedId)
         } catch (error) {
             console.error(error);
             toast.error("Could not load your history.");

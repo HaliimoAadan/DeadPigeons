@@ -40,6 +40,12 @@ export default function MyBoardsPage() {
     const [isPurchasing, setIsPurchasing] = useState(false);
 
     useEffect(() => {
+        const stored = localStorage.getItem("playerId") ?? "";
+        const trimmed = stored.trim();
+        if (trimmed && trimmed !== playerId) setPlayerId(trimmed);
+    }, []);
+    
+    useEffect(() => {
         const loadGames = async () => {
             try {
                 const response = await gamesApi.getAll();
@@ -55,18 +61,22 @@ export default function MyBoardsPage() {
     }, []);
 
     const refreshPlayerData = async (id: string) => {
-        if (!id) return;
+        const trimmedId = id.trim();
+        if (!trimmedId) return;
         setLoading(true);
         try {
             const [balanceResponse, boardResponse] = await Promise.all([
-                transactionsApi.getBalance(id),
+                transactionsApi.getBalance(trimmedId),
                 boardsApi.list()
             ]);
 
+            console.log("boardsApi.list()", boardResponse);
+            console.log("filtered", boardResponse.filter(b => b.playerId === trimmedId));
+
             setBalance(balanceResponse.balance);
-            const playerBoards = boardResponse.filter((board) => board.playerId === id);
+            const playerBoards = boardResponse.filter((board) => board.playerId === trimmedId);
             setBoards(playerBoards);
-            localStorage.setItem("playerId", id);
+            localStorage.setItem("playerId", trimmedId);
         } catch (error) {
             console.error(error);
             toast.error("Could not load your boards.");
@@ -104,14 +114,15 @@ export default function MyBoardsPage() {
     );
 
     const handlePurchase = async () => {
-        if (!playerId || !currentGame) {
+        const trimmedId = playerId.trim();
+        if (!trimmedId || !currentGame) {
             toast.error("Player ID and game are required.");
             return;
         }
 
         setIsPurchasing(true);
         try {
-            await boardsApi.purchase(playerId, {
+            await boardsApi.purchase(trimmedId, {
                 gameId: currentGame.gameId,
                 chosenNumbers: selectedNumbers,
                 isRepeating: false,
@@ -120,7 +131,7 @@ export default function MyBoardsPage() {
 
             toast.success("Board purchased successfully.");
             setSelectedNumbers([]);
-            await refreshPlayerData(playerId);
+            await refreshPlayerData(trimmedId);
         } catch (error) {
             console.error(error);
             toast.error("Could not purchase board.");

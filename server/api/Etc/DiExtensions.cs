@@ -1,6 +1,8 @@
+using api.Helpers;
 using api.Models;
 using efscaffold;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using NJsonSchema.CodeGeneration.TypeScript;
 using NSwag;
 using NSwag.CodeGeneration.TypeScript;
@@ -136,16 +138,24 @@ public static class DiExtensions
         return code;
     }
 
-    public static void AddMyDbContext(this IServiceCollection services)
+    public static void AddMyDbContext(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+        //var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
         // if (string.IsNullOrWhiteSpace(connectionString))
         //     throw new Exception("DATABASE_URL not set in environment variables.");
-
+        var connectionString = ConnectionStringHelper.GetConnectionString(configuration);
+        
         services.AddDbContext<MyDbContext>(
-            (serviceProvider, options) => { options.UseNpgsql(connectionString); },
-            ServiceLifetime.Transient
-        );
+            (serviceProvider, options) =>
+            {
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.EnableRetryOnFailure();
+                });
+            }, 
+            
+            ServiceLifetime.Transient 
+            );
     }
 
     public static void InjectAppOptions(this IServiceCollection services)
