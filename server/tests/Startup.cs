@@ -2,6 +2,7 @@ using api;
 using api.Etc;
 using efscaffold;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Time.Testing;
@@ -14,7 +15,10 @@ public class Startup
     public static void ConfigureServices(IServiceCollection services)
     {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
-        Program.ConfigureServices(services);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection()
+            .Build();
+        Program.ConfigureServices(services, configuration);
         services.RemoveAll(typeof(MyDbContext));
         services.AddScoped<MyDbContext>(factory =>
         {
