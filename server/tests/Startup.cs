@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using api;
 using api.Etc;
 using efscaffold;
@@ -15,16 +16,20 @@ public class Startup
     public static void ConfigureServices(IServiceCollection services)
     {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
+        var postgreSqlContainer = new PostgreSqlBuilder().Build();
+        postgreSqlContainer.StartAsync().GetAwaiter().GetResult();
+        var connectionString = postgreSqlContainer.GetConnectionString();
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:Default"] = connectionString
+            })
             .Build();
+        services.AddSingleton<IConfiguration>(configuration);
         Program.ConfigureServices(services, configuration);
         services.RemoveAll(typeof(MyDbContext));
         services.AddScoped<MyDbContext>(factory =>
         {
-            var postgreSqlContainer = new PostgreSqlBuilder().Build();
-            postgreSqlContainer.StartAsync().GetAwaiter().GetResult();
-            var connectionString = postgreSqlContainer.GetConnectionString();
             var options = new DbContextOptionsBuilder<MyDbContext>()
                 .UseNpgsql(connectionString)
                 .Options;
