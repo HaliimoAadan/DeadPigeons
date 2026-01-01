@@ -32,8 +32,6 @@ jobs:
         working-directory: client
         run: npm run build
 
-      
-
   server:
     name: Build & Test Server
     runs-on: ubuntu-latest
