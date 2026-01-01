@@ -37,6 +37,10 @@ jobs:
   server:
     name: Build & Test Server
     runs-on: ubuntu-latest
+    env:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      TESTCONTAINERS_HOST_OVERRIDE: localhost
+      TESTCONTAINERS_RYUK_DISABLED: "true"
 
     steps:
       - name: Checkout code
